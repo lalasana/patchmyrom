@@ -1,0 +1,7 @@
+# Template only — NOT a live ads.txt file.
+#
+# The real /public/ads.txt will be created only after the site is approved
+# by an ad network (e.g. Google AdSense) and is ready for production.
+#
+# Example line format once approved:
+# google.com, pub-0000000000000000, DIRECT, f08c47fec0942fa0
