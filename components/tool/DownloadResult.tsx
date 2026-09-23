@@ -2,6 +2,8 @@
 
 import { IconAlertTriangle, IconDownloadTray, IconShieldCheck } from "@/components/ui/icons";
 import { Button } from "@/components/ui/Button";
+import GbaPlayCta from "@/components/ui/GbaPlayCta";
+import { useIsAndroid } from "@/lib/gba-play-client";
 import type { PatchResult } from "@/hooks/useRomPatcherEngine";
 import { formatBytes } from "@/lib/format-bytes";
 
@@ -10,6 +12,7 @@ type DownloadResultProps = {
 };
 
 export default function DownloadResult({ result }: DownloadResultProps) {
+  const isAndroid = useIsAndroid();
   function handleDownload() {
     if (!result) return;
     const url = URL.createObjectURL(result.blob);
@@ -55,15 +58,20 @@ export default function DownloadResult({ result }: DownloadResultProps) {
         </span>
       )}
 
+      {/* Android: recommendation sits above the download button; everyone else sees it below. */}
+      {result && isAndroid && <GbaPlayCta placement="success" className="mt-1 w-full" />}
+
       <Button
         type="button"
         disabled={!result}
         fullWidth={false}
-        className="sm:w-auto"
+        className="min-h-11 sm:w-auto"
         onClick={handleDownload}
       >
         Download Patched File
       </Button>
+
+      {result && !isAndroid && <GbaPlayCta placement="success" className="mt-1 w-full" />}
     </div>
   );
 }

@@ -1,5 +1,6 @@
 import type { Metadata } from "next";
 import Link from "next/link";
+import GbaPlayCta from "@/components/ui/GbaPlayCta";
 import Breadcrumbs from "@/components/ui/Breadcrumbs";
 import RelatedGuides from "@/components/ui/RelatedGuides";
 import TroubleshootingCard from "@/components/ui/TroubleshootingCard";
@@ -171,6 +172,7 @@ export default function GbaRomPatcherPage() {
             <IconArrowRight className="h-4 w-4" />
           </ButtonLink>
         </div>
+        <GbaPlayCta placement="gba_page" />
       </section>
 
       <section className="flex flex-col gap-4">

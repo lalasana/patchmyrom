@@ -202,3 +202,12 @@ export function IconChevronDown({ className }: IconProps) {
     </svg>
   );
 }
+
+export function IconPlay({ className }: IconProps) {
+  return (
+    <svg viewBox="0 0 24 24" fill="none" className={className} aria-hidden="true">
+      <rect x="3" y="3" width="18" height="18" rx="5" stroke="currentColor" strokeWidth={base} />
+      <path d="M10 8.5v7l5.5-3.5L10 8.5Z" fill="currentColor" stroke="currentColor" strokeWidth={base} strokeLinejoin="round" />
+    </svg>
+  );
+}

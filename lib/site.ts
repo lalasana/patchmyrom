@@ -58,6 +58,7 @@ export const footerLinks = {
   consoles: consolePatcherPages,
   guides: [
     { href: "/how-to-patch-pokemon-rom-hacks", label: "How to Patch Pokemon ROM Hacks" },
+    { href: "/gba-play", label: "GBA Play (Android emulator)" },
     { href: "/troubleshooting", label: "Troubleshooting" },
     { href: "/changelog", label: "Changelog" },
   ],

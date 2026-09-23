@@ -28,6 +28,7 @@ const routes: RouteConfig[] = [
   { path: "/gbc-rom-patcher", priority: 0.7, changeFrequency: "monthly", lastModified: "2026-07-03" },
   { path: "/nes-rom-patcher", priority: 0.7, changeFrequency: "monthly", lastModified: "2026-07-03" },
   { path: "/snes-rom-patcher", priority: 0.7, changeFrequency: "monthly", lastModified: "2026-07-03" },
+  { path: "/gba-play", priority: 0.7, changeFrequency: "monthly", lastModified: "2026-09-23" },
   { path: "/about", priority: 0.5, changeFrequency: "monthly", lastModified: "2026-07-03" },
   { path: "/changelog", priority: 0.5, changeFrequency: "weekly", lastModified: "2026-07-03" },
   { path: "/contact", priority: 0.3, changeFrequency: "yearly", lastModified: "2026-07-02" },

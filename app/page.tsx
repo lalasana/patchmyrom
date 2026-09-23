@@ -5,6 +5,7 @@ import PrivacyNote from "@/components/ui/PrivacyNote";
 import FaqAccordion from "@/components/ui/FaqAccordion";
 import RelatedGuides from "@/components/ui/RelatedGuides";
 import TroubleshootingCard from "@/components/ui/TroubleshootingCard";
+import GbaPlayCta from "@/components/ui/GbaPlayCta";
 import AdSlot from "@/components/ads/AdSlot";
 import SectionHeading from "@/components/ui/SectionHeading";
 import BackgroundGlow from "@/components/ui/BackgroundGlow";
@@ -183,6 +184,7 @@ export default function HomePage() {
 
         <div className="mt-10 flex flex-col gap-6">
           <RomPatcherTool />
+          <GbaPlayCta placement="home" />
           <PrivacyNote />
         </div>
       </section>
