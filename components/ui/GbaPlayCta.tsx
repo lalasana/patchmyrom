@@ -2,6 +2,7 @@
 
 import Link from "next/link";
 import { useEffect } from "react";
+import GbaPlayIcon from "@/components/ui/GbaPlayIcon";
 import { IconArrowRight, IconPlay } from "@/components/ui/icons";
 import { GBA_PLAY_NAME, GBA_PLAY_PAGE, GBA_PLAY_URL, type GbaPlayPlacement } from "@/lib/gba-play";
 import { trackGbaPlay, useIsAndroid } from "@/lib/gba-play-client";
@@ -58,9 +59,7 @@ export default function GbaPlayCta({ placement, className = "", hideLearnMore = 
     >
       <div className="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
         <div className="flex min-w-0 items-start gap-3 text-left">
-          <span className="flex h-11 w-11 flex-none items-center justify-center rounded-xl bg-gradient-to-br from-accent-blue/25 to-accent-green/25 text-accent-blue">
-            <IconPlay className="h-6 w-6" />
-          </span>
+          <GbaPlayIcon size={48} className="h-12 w-12" />
           <div className="min-w-0">
             <p className="text-base font-semibold text-foreground">
               {GBA_PLAY_NAME} — {isAndroid ? "Best GBA Emulator" : "recommended Android emulator"}

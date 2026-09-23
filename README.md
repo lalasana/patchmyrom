@@ -42,7 +42,6 @@ The Play Store URL lives in one place: `GBA_PLAY_URL` in `lib/gba-play.ts`.
 - `components/ui/GbaPlayCta.tsx` — recommendation card (home, GBA/GBC pages, patch result). Android visitors get stronger
   copy ("Best GBA Emulator") swapped in after hydration; static HTML carries the desktop/iOS copy. On the patch result screen the card
   sits above the Download button on Android and below it elsewhere. The download flow itself is unchanged.
-- `app/gba-play/page.tsx` — dedicated landing page. Screenshots are in `public/gba-play/` (replace files, same names).
-  The app icon is still a placeholder tile (see the TODO in that page).
+- `app/gba-play/page.tsx` — dedicated app landing page. Screenshots and the real app icon (exported from the Android app's launcher icon, `icon-{48..512}.webp`) are in `public/gba-play/`.
 - Analytics: `gba_play_cta_view` / `gba_play_cta_click` with `placement` = `success | home | gba_page | gbc_page | gba_play_page`,
   forwarded to an existing `gtag`/`dataLayer` only if the visitor accepted analytics cookies. No provider is bundled.
