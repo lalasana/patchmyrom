@@ -19,6 +19,8 @@ export type RomAnalysis = {
   md5: string;
   sha1: string;
   sha256: string;
+  /** Set only when the patching library recognises a copier header (NES/FDS/Lynx/SNES). */
+  headerless: { name: string; headerSize: number; size: number; crc32: string } | null;
 };
 
 export type PatchAnalysis = {

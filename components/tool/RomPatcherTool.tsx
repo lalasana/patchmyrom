@@ -14,6 +14,7 @@ import { IconAlertTriangle, IconCartridge, IconPatchFile } from "@/components/ui
 import { useRomPatcherEngine, type PatchResult } from "@/hooks/useRomPatcherEngine";
 import { useFileAnalysis } from "@/hooks/useFileAnalysis";
 import { addHistoryEntry } from "@/lib/patch-history";
+import { checkCompatibility } from "@/lib/validate-compatibility";
 
 const BUTTON_LABELS: Record<string, string> = {
   "reading-rom": "Reading ROM…",
@@ -37,7 +38,7 @@ export default function RomPatcherTool() {
   const [romFile, setRomFile] = useState<File | null>(null);
   const [patchFile, setPatchFile] = useState<File | null>(null);
   const [format, setFormat] = useState<PatchFormat>(PATCH_FORMATS[0]);
-  const { stage, progress, error, result, runPatch, reset } = useRomPatcherEngine();
+  const { stage, progress, error, errorCode, result, runPatch, reset } = useRomPatcherEngine();
   const {
     romAnalysis,
     romStatus,
@@ -56,6 +57,14 @@ export default function RomPatcherTool() {
   const hasBothFiles = Boolean(romFile && patchFile);
   const isProcessing = PROCESSING_STAGES.has(stage);
   const isKnownUnrecognized = patchStatus === "done" && patchAnalysis !== null && !patchAnalysis.recognized;
+  const isPatchUnusable = patchStatus === "error";
+
+  // One verdict, shown once. A blocking verdict (wrong ROM, or ROM already patched) also
+  // disables Apply; the patch worker enforces the same rule if Apply is somehow reached first.
+  const compat = checkCompatibility(romAnalysis, patchAnalysis);
+  const isBlocked = compat?.blocking === true;
+  // The worker explains compatibility failures in the same words as `compat`; don't repeat them.
+  const showEngineError = stage === "error" && Boolean(error) && !(isBlocked && errorCode?.startsWith("rom-"));
 
   const historyWrittenRef = useRef<PatchResult | null>(null);
   useEffect(() => {
@@ -152,22 +161,31 @@ export default function RomPatcherTool() {
 
           <FormatSelector value={format} onChange={setFormat} />
 
-          <ValidationSummary romAnalysis={romAnalysis} patchAnalysis={patchAnalysis} />
+          <ValidationSummary check={compat} id="compat-verdict" />
 
           <PatchProgress stage={stage} progress={progress} />
 
-          {stage === "error" && error && (
-            <div className="flex items-start gap-3 rounded-lg border border-amber-500/30 bg-amber-500/10 px-4 py-3 text-sm text-amber-200">
+          {showEngineError && (
+            <div role="alert" className="flex items-start gap-3 rounded-lg border border-amber-500/30 bg-amber-500/10 px-4 py-3 text-sm text-amber-200">
               <IconAlertTriangle className="h-5 w-5 flex-none text-amber-400" />
-              <p>{error}</p>
+              <p className="min-w-0 break-words">{error}</p>
             </div>
           )}
 
           <Button
             type="button"
-            disabled={!hasBothFiles || isProcessing || isKnownUnrecognized}
+            disabled={!hasBothFiles || isProcessing || isKnownUnrecognized || isPatchUnusable || isBlocked}
             fullWidth
-            title={isKnownUnrecognized ? "This patch file's format wasn't recognized" : undefined}
+            aria-describedby={isBlocked ? "compat-verdict" : undefined}
+            title={
+              isKnownUnrecognized
+                ? "This patch file's format wasn't recognized"
+                : isPatchUnusable
+                  ? "This patch file couldn't be read — choose a different one"
+                  : isBlocked
+                    ? compat?.title
+                    : undefined
+            }
             onClick={handleApplyPatch}
           >
             {BUTTON_LABELS[stage] ?? "Apply Patch"}

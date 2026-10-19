@@ -1,18 +1,23 @@
 "use client";
 
-import type { PatchAnalysis, RomAnalysis } from "@/hooks/useFileAnalysis";
-import { checkCompatibility } from "@/lib/validate-compatibility";
+import type { CompatibilityCheck } from "@/lib/validate-compatibility";
 import { IconAlertTriangle, IconInfo, IconShieldCheck } from "@/components/ui/icons";
 
 type ValidationSummaryProps = {
-  romAnalysis: RomAnalysis | null;
-  patchAnalysis: PatchAnalysis | null;
+  /** Result of checkCompatibility(); null until both files have been analyzed. */
+  check: CompatibilityCheck | null;
+  /** Id the Apply button points at via aria-describedby when the verdict blocks patching. */
+  id?: string;
 };
 
 const LEVEL_STYLES = {
   ok: {
     classes: "border-accent-green/30 bg-accent-green/10 text-accent-green",
     icon: IconShieldCheck,
+  },
+  info: {
+    classes: "border-accent-blue/40 bg-accent-blue/10 text-foreground",
+    icon: IconInfo,
   },
   warning: {
     classes: "border-amber-500/30 bg-amber-500/10 text-amber-200",
@@ -24,16 +29,30 @@ const LEVEL_STYLES = {
   },
 } as const;
 
-export default function ValidationSummary({ romAnalysis, patchAnalysis }: ValidationSummaryProps) {
-  const check = checkCompatibility(romAnalysis, patchAnalysis);
+export default function ValidationSummary({ check, id }: ValidationSummaryProps) {
   if (!check) return null;
 
   const { classes, icon: Icon } = LEVEL_STYLES[check.level];
+  // Blocking verdicts are announced as alerts; the rest are quiet status text.
+  const live = check.blocking ? { role: "alert" as const } : { role: "status" as const };
 
   return (
-    <div className={`flex items-start gap-3 rounded-lg border px-4 py-3 text-sm ${classes}`}>
-      <Icon className="h-5 w-5 flex-none" />
-      <p>{check.message}</p>
+    <div id={id} {...live} className={`flex items-start gap-3 rounded-lg border px-4 py-3 text-sm ${classes}`}>
+      <Icon className="mt-0.5 h-5 w-5 flex-none" />
+      <div className="min-w-0 flex-1">
+        {check.blocking && <p className="font-semibold">{check.title}</p>}
+        <p className={check.blocking ? "mt-1" : undefined}>{check.message}</p>
+        {check.details.length > 0 && (
+          <dl className="mt-2 grid gap-x-3 gap-y-1 text-xs sm:grid-cols-[auto_1fr]">
+            {check.details.map((detail) => (
+              <div key={detail.label} className="contents">
+                <dt className="font-medium opacity-80">{detail.label}</dt>
+                <dd className="min-w-0 break-words font-mono">{detail.value}</dd>
+              </div>
+            ))}
+          </dl>
+        )}
+      </div>
     </div>
   );
 }

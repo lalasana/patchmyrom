@@ -38,7 +38,7 @@ type WorkerMessage =
       fileName: string;
       outputVerified: boolean | null;
     }
-  | { type: "error"; message: string };
+  | { type: "error"; message: string; code?: string };
 
 const PATCH_OPTIONS = {
   requireValidation: true,
@@ -52,6 +52,7 @@ export function useRomPatcherEngine() {
   const [stage, setStage] = useState<PatchStage>("idle");
   const [progress, setProgress] = useState<PatchProgressInfo | null>(null);
   const [error, setError] = useState<string | null>(null);
+  const [errorCode, setErrorCode] = useState<string | null>(null);
   const [result, setResult] = useState<PatchResult | null>(null);
 
   useEffect(() => {
@@ -70,6 +71,7 @@ export function useRomPatcherEngine() {
     setStage("idle");
     setProgress(null);
     setError(null);
+    setErrorCode(null);
     setResult(null);
   }, []);
 
@@ -81,6 +83,7 @@ export function useRomPatcherEngine() {
     workerRef.current = worker;
 
     setError(null);
+    setErrorCode(null);
     setResult(null);
     setProgress(null);
     setStage("reading-rom");
@@ -97,6 +100,7 @@ export function useRomPatcherEngine() {
         setProgress(null);
       } else if (data.type === "error") {
         setError(data.message);
+        setErrorCode(data.code ?? null);
         setStage("error");
         setProgress(null);
       }
@@ -117,5 +121,5 @@ export function useRomPatcherEngine() {
     });
   }, []);
 
-  return { stage, progress, error, result, runPatch, reset };
+  return { stage, progress, error, errorCode, result, runPatch, reset };
 }

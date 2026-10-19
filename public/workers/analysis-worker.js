@@ -16,6 +16,7 @@
  */
 
 self.importScripts(
+  "/workers/patch-compat.js",
   "/vendor/rom-patcher-js/RomPatcher.js",
   "/vendor/rom-patcher-js/modules/BinFile.js",
   "/vendor/rom-patcher-js/modules/HashCalculator.js",
@@ -121,6 +122,30 @@ function detectPlatform(fileName, u8array) {
   return { extension: extension, platform: platform, detectionMethod: detectionMethod };
 }
 
+/**
+ * If the vendored library recognises a copier header on this ROM (NES/FDS/Lynx/SNES —
+ * the only cases it will ever strip), returns the header-less view's size and CRC32;
+ * otherwise null. This mirrors exactly what RomPatcher.applyPatch validates against
+ * when removeHeader is on, so the pre-flight check can't disagree with the real gate.
+ * Nothing is stripped here — this only reads.
+ */
+function describeHeaderlessView(u8array, fileName) {
+  var bin = new BinFile(u8array);
+  bin.fileName = fileName;
+  var info = RomPatcher.isRomHeadered(bin);
+  if (!info) return null;
+  return {
+    name: info.name,
+    headerSize: info.size,
+    size: u8array.length - info.size,
+    crc32: (function () {
+      var hex = (HashCalculator.crc32(u8array.buffer, info.size) >>> 0).toString(16);
+      while (hex.length < 8) hex = "0" + hex;
+      return hex;
+    })(),
+  };
+}
+
 function analyzeRom(requestId, cacheKey, file) {
   return readFileChunked(file, function (loaded, total) {
     self.postMessage({ type: "rom-progress", requestId: requestId, loaded: loaded, total: total });
@@ -147,6 +172,7 @@ function analyzeRom(requestId, cacheKey, file) {
           md5: hashes[1],
           sha1: hashes[2],
           sha256: hashes[3],
+          headerless: describeHeaderlessView(u8array, file.name),
         },
       });
     });
@@ -203,6 +229,15 @@ function analyzePatch(requestId, cacheKey, file) {
   return readFileChunked(file, function (loaded, total) {
     self.postMessage({ type: "patch-progress", requestId: requestId, loaded: loaded, total: total });
   }).then(function (u8array) {
+    // Reject truncated/damaged BPS and UPS files before the vendored parser sees them:
+    // it has no end-of-file guard on its header numbers and spins forever on them.
+    var preflight = PatchCompat.preflightPatch(u8array);
+    if (!preflight.ok) {
+      var damaged = new Error(preflight.message);
+      damaged.code = preflight.code;
+      throw damaged;
+    }
+
     var patchBin = new BinFile(u8array);
     patchBin.fileName = file.name;
     patchBin.fileType = file.type || "application/octet-stream";
@@ -243,11 +278,13 @@ self.onmessage = function (event) {
     });
   } else if (data.type === "analyze-patch") {
     analyzePatch(data.requestId, data.cacheKey, data.file).catch(function (err) {
+      var explained = PatchCompat.explainError(err);
       self.postMessage({
         type: "error",
         requestId: data.requestId,
         lane: "patch",
-        message: (err && err.message) || "Could not analyze this patch file.",
+        code: (err && err.code) || explained.code,
+        message: explained.message || "Could not analyze this patch file.",
       });
     });
   }

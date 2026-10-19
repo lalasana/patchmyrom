@@ -9,13 +9,15 @@
  *
  * Everything here is glue/orchestration around the vendored library:
  * chunked file reads (for real progress reporting on large NDS ROMs), a
- * proactive checksum pre-check, a post-apply output re-verification, a
- * smart filename override for formats with embedded titles, and the
- * postMessage protocol. No patch format algorithm is implemented in this
- * file.
+ * compatibility gate (patch-compat.js: compatible / already patched / wrong
+ * ROM) in front of the library's own requireValidation check, a post-apply
+ * output verification that fails closed, a smart filename override for formats
+ * with embedded titles, and the postMessage protocol. No patch format
+ * algorithm is implemented in this file.
  */
 
 self.importScripts(
+  "/workers/patch-compat.js",
   "/vendor/rom-patcher-js/RomPatcher.js",
   "/vendor/rom-patcher-js/modules/BinFile.js",
   "/vendor/rom-patcher-js/modules/HashCalculator.js",
@@ -65,6 +67,37 @@ function crc32ToHex(value) {
   return hex;
 }
 
+/** Error carrying a machine-readable `code` alongside the user-facing message. */
+function coded(code, message) {
+  var err = new Error(message);
+  err.code = code;
+  return err;
+}
+
+/** Source/target size and CRC32 a patch declares, normalised across BPS and UPS. */
+function declaredChecksums(patch) {
+  var sourceCrc, targetCrc, sourceSize, targetSize;
+  if (typeof patch.checksumInput === "number") {
+    // UPS
+    sourceCrc = patch.checksumInput;
+    targetCrc = patch.checksumOutput;
+    sourceSize = patch.sizeInput;
+    targetSize = patch.sizeOutput;
+  } else if (typeof patch.sourceChecksum === "number") {
+    // BPS
+    sourceCrc = patch.sourceChecksum;
+    targetCrc = patch.targetChecksum;
+    sourceSize = patch.sourceSize;
+    targetSize = patch.targetSize;
+  }
+  return {
+    sourceCrc32: typeof sourceCrc === "number" ? crc32ToHex(sourceCrc) : null,
+    targetCrc32: typeof targetCrc === "number" ? crc32ToHex(targetCrc) : null,
+    sourceSize: typeof sourceSize === "number" ? sourceSize : null,
+    targetSize: typeof targetSize === "number" ? targetSize : null,
+  };
+}
+
 function sanitizeFileName(name) {
   var cleaned = name.replace(/[\/\\:*?"<>|]/g, "").trim();
   if (cleaned.length > 120) cleaned = cleaned.slice(0, 120).trim();
@@ -101,30 +134,56 @@ self.onmessage = function (event) {
       patchBin.fileName = patchFile.name;
       patchBin.fileType = patchFile.type || "application/octet-stream";
 
+      // BPS and UPS parsers in the vendored library spin forever on a patch
+      // truncated inside its header; reject damaged files before they get there.
+      var preflight = PatchCompat.preflightPatch(result.patchU8);
+      if (!preflight.ok) throw coded(preflight.code, preflight.message);
+
       var patch = RomPatcher.parsePatchFile(patchBin);
       if (!patch) {
-        throw new Error(
+        throw coded(
+          "patch-unrecognized",
           "Unrecognized patch file format. Supported formats: IPS, UPS, BPS, and xdelta/VCDIFF."
         );
       }
 
-      // Proactive pre-check using the already-computed ROM CRC32 (from the
-      // analysis worker) — a plain string comparison, no re-hashing. Only
-      // runs when we actually have that value and the format declares a
-      // source checksum; otherwise this is skipped entirely and the
-      // library's own requireValidation check (below, inside applyPatch)
-      // remains the sole, authoritative gate.
-      var declaredSourceChecksum =
-        typeof patch.checksumInput === "number"
-          ? crc32ToHex(patch.checksumInput)
-          : typeof patch.sourceChecksum === "number"
-            ? crc32ToHex(patch.sourceChecksum)
-            : null;
-      if (knownRomCrc32 && declaredSourceChecksum && knownRomCrc32.toLowerCase() !== declaredSourceChecksum.toLowerCase()) {
-        throw new Error(
-          "This ROM does not appear to match the patch's expected base ROM (checksum mismatch). Double-check the region/revision, or that the file doesn't have an extra header."
-        );
+      var declared = declaredChecksums(patch);
+
+      // Compatibility gate. For formats that declare the checksum of the ROM they were
+      // made for (BPS, UPS) this classifies the ROM as the right original, the already
+      // finished result, or the wrong file — and stops with ONE explanation for the last
+      // two. It runs in front of, never instead of, the library's requireValidation
+      // check inside applyPatch, which stays the authoritative gate.
+      var romHeaderInfo = options.removeHeader ? RomPatcher.isRomHeadered(romBin) : null;
+      if (declared.sourceCrc32) {
+        var romCrc32 = knownRomCrc32 || crc32ToHex(HashCalculator.crc32(result.romU8.buffer));
+        var verdict = PatchCompat.classify({
+          rom: {
+            size: result.romU8.length,
+            crc32: romCrc32,
+            headerless: romHeaderInfo
+              ? {
+                  name: romHeaderInfo.name,
+                  headerSize: romHeaderInfo.size,
+                  size: result.romU8.length - romHeaderInfo.size,
+                  crc32: crc32ToHex(HashCalculator.crc32(result.romU8.buffer, romHeaderInfo.size)),
+                }
+              : null,
+          },
+          patch: {
+            sourceSize: declared.sourceSize,
+            targetSize: declared.targetSize,
+            sourceCrc32: declared.sourceCrc32,
+            targetCrc32: declared.targetCrc32,
+          },
+        });
+        if (verdict.blocking) throw coded(verdict.code, PatchCompat.toPlainText(verdict));
       }
+
+      // A patch that promises an exact output checksum defines the output byte for byte;
+      // the library's post-patch header "fix-up" (Game Boy / Mega Drive) would silently
+      // rewrite those bytes and make a correct result look corrupted.
+      if (declared.targetCrc32) options = Object.assign({}, options, { fixChecksum: false });
 
       var titleFromPatch =
         typeof patch.description === "string" && patch.description.trim() ? patch.description.trim() : null;
@@ -133,16 +192,26 @@ self.onmessage = function (event) {
       var patchedRom = RomPatcher.applyPatch(romBin, patch, options);
 
       self.postMessage({ type: "progress", stage: "verifying-output", loaded: 0, total: 0 });
-      var declaredTargetChecksum =
-        typeof patch.checksumOutput === "number"
-          ? crc32ToHex(patch.checksumOutput)
-          : typeof patch.targetChecksum === "number"
-            ? crc32ToHex(patch.targetChecksum)
-            : null;
       var outputVerified = null;
-      if (declaredTargetChecksum) {
-        var actualChecksum = crc32ToHex(patchedRom.hashCRC32());
-        outputVerified = actualChecksum === declaredTargetChecksum;
+      if (declared.targetCrc32) {
+        // If the library set a copier header aside and put it back, the patch's checksum
+        // covers the header-less part only.
+        var headerBytes = romHeaderInfo ? romHeaderInfo.size : 0;
+        var actualChecksum = crc32ToHex(
+          PatchCompat.crc32Bytes(patchedRom._u8array, headerBytes, patchedRom._u8array.length)
+        );
+        outputVerified = actualChecksum === declared.targetCrc32;
+        if (!outputVerified) {
+          // Never hand over a file that isn't what the patch promised.
+          throw coded(
+            "output-mismatch",
+            "The patched result didn't match the checksum this patch promises (expected CRC32 " +
+              PatchCompat.showCrc(declared.targetCrc32) +
+              ", got " +
+              PatchCompat.showCrc(actualChecksum) +
+              "), so it was discarded instead of offered for download. The patch file may be damaged — try downloading it again."
+          );
+        }
       }
 
       if (titleFromPatch) {
@@ -163,9 +232,11 @@ self.onmessage = function (event) {
       );
     })
     .catch(function (err) {
+      var explained = err && err.code ? { code: err.code, message: err.message } : PatchCompat.explainError(err);
       self.postMessage({
         type: "error",
-        message: err && err.message ? err.message : "Patching failed for an unknown reason.",
+        code: explained.code,
+        message: explained.message || "Patching failed for an unknown reason.",
       });
     });
 };

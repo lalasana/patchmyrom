@@ -1,18 +1,15 @@
 import type { PatchAnalysis, RomAnalysis } from "@/hooks/useFileAnalysis";
-import { formatBytes } from "@/lib/format-bytes";
+import { classifyCompatibility, type CompatVerdict } from "@/lib/patch-compat";
 
-export type CompatibilityLevel = "ok" | "warning" | "unknown";
-
-export type CompatibilityCheck = {
-  level: CompatibilityLevel;
-  message: string;
-};
+export type CompatibilityCheck = CompatVerdict;
 
 /**
- * Proactive, advisory-only compatibility check between an analyzed ROM and
- * patch. This never blocks patching — RomPatcher.js's own requireValidation
- * check remains the authoritative gate at apply time. Returns null until
- * both analyses are available.
+ * Proactive compatibility check between an analyzed ROM and patch. Classifies the pair as
+ * the right original, the already-patched result, the wrong file, or unverifiable, with a
+ * single explanation for each. A `blocking` verdict also disables the Apply button, but this
+ * is only the early, friendly signal: the patch worker re-runs the identical classifier and
+ * RomPatcher.js's own requireValidation check remains the authoritative gate at apply time.
+ * Returns null until both analyses are available.
  */
 export function checkCompatibility(
   rom: RomAnalysis | null,
@@ -20,31 +17,13 @@ export function checkCompatibility(
 ): CompatibilityCheck | null {
   if (!rom || !patch || !patch.recognized) return null;
 
-  if (!patch.canValidateSource || !patch.sourceChecksumCRC32) {
-    return {
-      level: "unknown",
-      message:
-        "This patch format doesn't embed a checksum, so compatibility can't be verified in advance. Double-check you have the right base ROM before applying.",
-    };
-  }
-
-  if (patch.sourceSize !== null && rom.fileSize !== patch.sourceSize) {
-    return {
-      level: "warning",
-      message: `Size mismatch: this patch expects a ${formatBytes(patch.sourceSize)} ROM, but your file is ${formatBytes(rom.fileSize)}. This is usually the wrong base ROM, though it can also mean your file has an extra header.`,
-    };
-  }
-
-  if (rom.crc32.toLowerCase() !== patch.sourceChecksumCRC32.toLowerCase()) {
-    return {
-      level: "warning",
-      message:
-        "This ROM's checksum doesn't match what the patch expects — you may have the wrong region, revision, or a ROM with an extra header. Applying may still work if it's just a header difference.",
-    };
-  }
-
-  return {
-    level: "ok",
-    message: "This ROM matches the patch's expected checksum.",
-  };
+  return classifyCompatibility({
+    rom: { size: rom.fileSize, crc32: rom.crc32, headerless: rom.headerless },
+    patch: {
+      sourceSize: patch.sourceSize,
+      targetSize: patch.targetSize,
+      sourceCrc32: patch.sourceChecksumCRC32,
+      targetCrc32: patch.targetChecksumCRC32,
+    },
+  });
 }
