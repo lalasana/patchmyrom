@@ -1,0 +1,4 @@
+# Cloudflare Pages redirects (copied to the export root by Next.js). Permanent (301) redirects.
+# GBA Play was replaced by GBA Emulator: Play Retro Games.
+/gba-play /gba-emulator/ 301
+/gba-play/ /gba-emulator/ 301

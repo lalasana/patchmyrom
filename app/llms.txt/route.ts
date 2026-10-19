@@ -46,7 +46,7 @@ const sections: LlmsSection[] = [
   {
     heading: "Recommended app",
     entries: [
-      { path: "/gba-play", description: "GBA Play, the Android Game Boy Advance emulator PatchMyROM recommends for playing patched ROMs; links to Google Play." },
+      { path: "/gba-emulator", description: "GBA Emulator: Play Retro Games by Gamesira, an Android emulator for GBA, GBC and GB games (not Nintendo DS) that PatchMyROM recommends for playing patched ROMs; links to Google Play." },
     ],
   },
   {

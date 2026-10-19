@@ -2,6 +2,7 @@ import type { Metadata } from "next";
 import Breadcrumbs from "@/components/ui/Breadcrumbs";
 import RelatedGuides from "@/components/ui/RelatedGuides";
 import JsonLd from "@/components/seo/JsonLd";
+import GbaEmulatorCta from "@/components/ui/GbaEmulatorCta";
 import { buildPageMetadata } from "@/lib/seo";
 
 export const metadata: Metadata = buildPageMetadata({
@@ -77,6 +78,11 @@ export default function HowToPatchPage() {
           </li>
         ))}
       </ol>
+
+      <GbaEmulatorCta
+        placement="guide_page"
+        note="Best for GBA hacks such as FireRed or Emerald. Nintendo DS hacks can’t be played with it."
+      />
 
       <section className="flex flex-col gap-4">
         <h2 className="text-2xl font-semibold text-foreground">Related Guides</h2>

@@ -35,13 +35,11 @@ The easiest way to deploy your Next.js app is to use the [Vercel Platform](https
 
 Check out our [Next.js deployment documentation](https://nextjs.org/docs/app/building-your-application/deploying) for more details.
 
-## GBA Play promotion
+## GBA Emulator promotion
 
-The Play Store URL lives in one place: `GBA_PLAY_URL` in `lib/gba-play.ts`.
+The Play Store URL, names and placements live in one place: `lib/gba-emulator.ts` (`GBA_EMULATOR_URL`). The app is **GBA Emulator: Play Retro Games** by Gamesira (package `app.gbaemulator`). It supports GBA, GBC and GB only — never promote it for Nintendo DS.
 
-- `components/ui/GbaPlayCta.tsx` — recommendation card (home, GBA/GBC pages, patch result). Android visitors get stronger
-  copy ("Best GBA Emulator") swapped in after hydration; static HTML carries the desktop/iOS copy. On the patch result screen the card
-  sits above the Download button on Android and below it elsewhere. The download flow itself is unchanged.
-- `app/gba-play/page.tsx` — dedicated app landing page. Screenshots and the real app icon (exported from the Android app's launcher icon, `icon-{48..512}.webp`) are in `public/gba-play/`.
-- Analytics: `gba_play_cta_view` / `gba_play_cta_click` with `placement` = `success | home | gba_page | gbc_page | gba_play_page`,
-  forwarded to an existing `gtag`/`dataLayer` only if the visitor accepted analytics cookies. No provider is bundled.
+- `components/ui/GbaEmulatorCta.tsx` — recommendation card (home, GBA/GBC/Pokemon pages, how-to guide, patch result). Android visitors get action-oriented copy swapped in after hydration; static HTML carries the desktop/iOS copy. On the patch result screen it only appears for .gba/.gbc/.gb outputs (`isGameBoyFamilyFile`).
+- `app/gba-emulator/page.tsx` — dedicated landing page. Icon and the 8 screenshots are the app's own Google Play listing images, stored as webp in `public/gba-emulator/` (plus `og-gba-emulator.png`, built from them). Only claim features that appear in the Play listing.
+- Old URL `/gba-play/`: permanent 301 via `public/_redirects` (Cloudflare Pages); `app/gba-play/page.tsx` is a canonical + meta-refresh fallback with no promo content.
+- Analytics: `gba_emulator_cta_view` / `gba_emulator_cta_click` with `placement` = `success | home | gba_page | gbc_page | pokemon_page | guide_page | emulator_page`, forwarded to an existing `gtag`/`dataLayer` only if the visitor accepted analytics cookies. No provider is bundled.

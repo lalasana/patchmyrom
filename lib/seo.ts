@@ -8,6 +8,8 @@ type BuildPageMetadataOptions = {
   description: string;
   /** Route path starting with "/", e.g. "/pokemon-rom-patcher" or "/" for the homepage. */
   path: string;
+  /** Optional social-card image path (defaults to the site-wide OG image). */
+  image?: string;
 };
 
 /**
@@ -17,7 +19,7 @@ type BuildPageMetadataOptions = {
  * is what happens if a page only sets `title`/`description` without its
  * own `openGraph`/`twitter` blocks).
  */
-export function buildPageMetadata({ title, description, path }: BuildPageMetadataOptions): Metadata {
+export function buildPageMetadata({ title, description, path, image = siteConfig.ogImage }: BuildPageMetadataOptions): Metadata {
   const url = `${siteConfig.url}${path}`;
 
   return {
@@ -30,13 +32,13 @@ export function buildPageMetadata({ title, description, path }: BuildPageMetadat
       url,
       siteName: siteConfig.name,
       type: "website",
-      images: [siteConfig.ogImage],
+      images: [image],
     },
     twitter: {
       card: "summary_large_image",
       title,
       description,
-      images: [siteConfig.ogImage],
+      images: [image],
     },
   };
 }

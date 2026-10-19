@@ -2,8 +2,9 @@
 
 import { IconAlertTriangle, IconDownloadTray, IconShieldCheck } from "@/components/ui/icons";
 import { Button } from "@/components/ui/Button";
-import GbaPlayCta from "@/components/ui/GbaPlayCta";
-import { useIsAndroid } from "@/lib/gba-play-client";
+import GbaEmulatorCta from "@/components/ui/GbaEmulatorCta";
+import { useIsAndroid } from "@/lib/gba-emulator-client";
+import { isGameBoyFamilyFile } from "@/lib/gba-emulator";
 import type { PatchResult } from "@/hooks/useRomPatcherEngine";
 import { formatBytes } from "@/lib/format-bytes";
 
@@ -13,6 +14,8 @@ type DownloadResultProps = {
 
 export default function DownloadResult({ result }: DownloadResultProps) {
   const isAndroid = useIsAndroid();
+  // Only offer the emulator for files it can play (.gba/.gbc/.gb) — never for .nds, .sfc, .nes, ...
+  const showEmulatorCta = Boolean(result && isGameBoyFamilyFile(result.fileName));
   function handleDownload() {
     if (!result) return;
     const url = URL.createObjectURL(result.blob);
@@ -59,7 +62,7 @@ export default function DownloadResult({ result }: DownloadResultProps) {
       )}
 
       {/* Android: recommendation sits above the download button; everyone else sees it below. */}
-      {result && isAndroid && <GbaPlayCta placement="success" className="mt-1 w-full" />}
+      {showEmulatorCta && isAndroid && <GbaEmulatorCta placement="success" compact className="mt-1 w-full" />}
 
       <Button
         type="button"
@@ -71,7 +74,7 @@ export default function DownloadResult({ result }: DownloadResultProps) {
         Download Patched File
       </Button>
 
-      {result && !isAndroid && <GbaPlayCta placement="success" className="mt-1 w-full" />}
+      {showEmulatorCta && !isAndroid && <GbaEmulatorCta placement="success" compact className="mt-1 w-full" />}
     </div>
   );
 }

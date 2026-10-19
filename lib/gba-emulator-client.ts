@@ -2,7 +2,7 @@
 
 import { useSyncExternalStore } from "react";
 import { readStoredConsent } from "@/lib/cookie-consent";
-import type { GbaPlayPlacement } from "@/lib/gba-play";
+import type { GbaEmulatorPlacement } from "@/lib/gba-emulator";
 
 const noopSubscribe = () => () => {};
 const detectAndroid = () => /Android/i.test(navigator.userAgent);
@@ -19,7 +19,7 @@ type AnalyticsWindow = Window & { gtag?: GtagFn; dataLayer?: unknown[] };
  * Forwards to an analytics tool the page already has (gtag / dataLayer). Adds no provider,
  * and sends nothing unless the visitor opted into analytics in the cookie banner.
  */
-export function trackGbaPlay(event: "gba_play_cta_view" | "gba_play_cta_click", placement: GbaPlayPlacement) {
+export function trackGbaEmulator(event: "gba_emulator_cta_view" | "gba_emulator_cta_click", placement: GbaEmulatorPlacement) {
   if (typeof window === "undefined") return;
   if (!readStoredConsent()?.analytics) return;
   const w = window as AnalyticsWindow;

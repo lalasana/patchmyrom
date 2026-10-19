@@ -10,6 +10,7 @@ import BackgroundGlow from "@/components/ui/BackgroundGlow";
 import TroubleshootingCard from "@/components/ui/TroubleshootingCard";
 import PokemonHackBaseRomTable from "@/components/content/PokemonHackBaseRomTable";
 import JsonLd from "@/components/seo/JsonLd";
+import GbaEmulatorCta from "@/components/ui/GbaEmulatorCta";
 import { ButtonLink } from "@/components/ui/Button";
 import {
   IconGamepad,
@@ -165,6 +166,10 @@ export default function PokemonRomPatcherPage() {
 
         <div id="pokemon-rom-tool" className="mt-8 flex flex-col gap-6 scroll-mt-24">
           <RomPatcherTool />
+          <GbaEmulatorCta
+            placement="pokemon_page"
+            note="Best for GBA hacks such as FireRed or Emerald. Nintendo DS hacks (HeartGold, Platinum and similar) can’t be played with it."
+          />
           <PrivacyNote />
         </div>
       </div>

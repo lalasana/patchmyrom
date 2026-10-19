@@ -5,7 +5,7 @@ import PrivacyNote from "@/components/ui/PrivacyNote";
 import FaqAccordion from "@/components/ui/FaqAccordion";
 import RelatedGuides from "@/components/ui/RelatedGuides";
 import TroubleshootingCard from "@/components/ui/TroubleshootingCard";
-import GbaPlayCta from "@/components/ui/GbaPlayCta";
+import GbaEmulatorCta from "@/components/ui/GbaEmulatorCta";
 import AdSlot from "@/components/ads/AdSlot";
 import SectionHeading from "@/components/ui/SectionHeading";
 import BackgroundGlow from "@/components/ui/BackgroundGlow";
@@ -184,7 +184,7 @@ export default function HomePage() {
 
         <div className="mt-10 flex flex-col gap-6">
           <RomPatcherTool />
-          <GbaPlayCta placement="home" />
+          <GbaEmulatorCta placement="home" note="Works with GBA, GBC and GB games only — Nintendo DS games are not supported." />
           <PrivacyNote />
         </div>
       </section>
