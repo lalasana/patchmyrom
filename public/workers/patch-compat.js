@@ -309,6 +309,22 @@
           "This ROM doesn't match the original this patch was made for (checksum mismatch), so patching was stopped. Use an unmodified copy of the exact game, region and revision the patch's author used.",
       };
     }
+    // Raw messages from the vendored xdelta/VCDIFF decoder. The VcdiffSecondary pre-pass normally
+    // handles these cases first; this is the safety net if one of them still reaches the library.
+    if (/not implemented: secondary decompressor|unimplemented windowheader\.deltaindicator/i.test(raw)) {
+      return {
+        code: "xdelta-secondary-unsupported",
+        message:
+          "This xdelta patch uses secondary compression that PatchMyROM can't decode (only uncompressed and LZMA xdelta patches are supported). Ask the patch's author to re-create it with `xdelta3 -S none` (or `-S lzma`), or apply it with the official xdelta3 command-line tool.",
+      };
+    }
+    if (/not implemented: custom code table/i.test(raw)) {
+      return {
+        code: "xdelta-codetable-unsupported",
+        message:
+          "This xdelta patch uses a custom instruction table, which PatchMyROM can't decode. Ask the patch's author to re-create it with the standard xdelta3 settings.",
+      };
+    }
     return { code: "patch-failed", message: raw || "Patching failed for an unknown reason." };
   }
 

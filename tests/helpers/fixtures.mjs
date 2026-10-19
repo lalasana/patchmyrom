@@ -169,25 +169,39 @@ function vcdVarint(n) {
  * Minimal valid VCDIFF/xdelta patch: one window that COPYs the whole source, then
  * ADDs `appended` bytes (so target = source + appended). Uses the default code table.
  */
-export function buildVcdiff(source, appended) {
+export function buildVcdiff(source, appended, { adler = false, adlerOverride = null } = {}) {
   const data = Uint8Array.from(appended);
   // COPY size0/mode0 (code 19) + explicit size, then ADD with size = appended.length (code 1 + size)
   const inst = concat([Uint8Array.of(19), vcdVarint(source.length), Uint8Array.of(1 + appended.length)]);
   const addr = vcdVarint(0);
   const targetLen = source.length + appended.length;
+  // Optional VCD_ADLER32: big-endian Adler-32 of the target window (source + appended), as xdelta3 writes it.
+  let adlerBytes = new Uint8Array(0);
+  if (adler) {
+    const target = concat([source, data]);
+    let a = 1;
+    let b = 0;
+    for (let i = 0; i < target.length; i++) {
+      a = (a + target[i]) % 65521;
+      b = (b + a) % 65521;
+    }
+    const sum = adlerOverride ?? (((b << 16) | a) >>> 0);
+    adlerBytes = Uint8Array.of(sum >>> 24, (sum >>> 16) & 255, (sum >>> 8) & 255, sum & 255);
+  }
   const delta = concat([
     vcdVarint(targetLen),
     Uint8Array.of(0), // delta indicator
     vcdVarint(data.length),
     vcdVarint(inst.length),
     vcdVarint(addr.length),
+    adlerBytes,
     data,
     inst,
     addr,
   ]);
   return concat([
     Uint8Array.of(0xd6, 0xc3, 0xc4, 0x00, 0x00), // magic, version, header indicator
-    Uint8Array.of(0x01), // window indicator: VCD_SOURCE
+    Uint8Array.of(adler ? 0x05 : 0x01), // window indicator: VCD_SOURCE (+ VCD_ADLER32)
     vcdVarint(source.length),
     vcdVarint(0),
     vcdVarint(delta.length),

@@ -18,6 +18,7 @@
 
 self.importScripts(
   "/workers/patch-compat.js",
+  "/workers/vcdiff-secondary.js",
   "/vendor/rom-patcher-js/RomPatcher.js",
   "/vendor/rom-patcher-js/modules/BinFile.js",
   "/vendor/rom-patcher-js/modules/HashCalculator.js",
@@ -130,14 +131,25 @@ self.onmessage = function (event) {
       romBin.fileName = romFile.name;
       romBin.fileType = romFile.type || "application/octet-stream";
 
-      var patchBin = new BinFile(result.patchU8);
-      patchBin.fileName = patchFile.name;
-      patchBin.fileType = patchFile.type || "application/octet-stream";
-
       // BPS and UPS parsers in the vendored library spin forever on a patch
       // truncated inside its header; reject damaged files before they get there.
       var preflight = PatchCompat.preflightPatch(result.patchU8);
       if (!preflight.ok) throw coded(preflight.code, preflight.message);
+
+      // xdelta/VCDIFF: validate the structure and, for LZMA-compressed patches, decode the
+      // secondary compression into an equivalent plain VCDIFF that the vendored decoder
+      // applies unchanged. Plain patches pass through untouched (same array, no copy).
+      var vcdiff = null;
+      var patchBytes = result.patchU8;
+      if (VcdiffSecondary.isVcdiff(patchBytes)) {
+        vcdiff = VcdiffSecondary.prepare(patchBytes);
+        patchBytes = vcdiff.plain;
+        result.patchU8 = null; // let the compressed copy be collected
+      }
+
+      var patchBin = new BinFile(patchBytes);
+      patchBin.fileName = patchFile.name;
+      patchBin.fileType = patchFile.type || "application/octet-stream";
 
       var patch = RomPatcher.parsePatchFile(patchBin);
       if (!patch) {
@@ -184,15 +196,35 @@ self.onmessage = function (event) {
       // the library's post-patch header "fix-up" (Game Boy / Mega Drive) would silently
       // rewrite those bytes and make a correct result look corrupted.
       if (declared.targetCrc32) options = Object.assign({}, options, { fixChecksum: false });
+      // Same for an xdelta patch carrying Adler-32 checksums of its output windows.
+      var vcdiffVerifiable = vcdiff !== null && vcdiff.info.adlerWindows > 0;
+      if (vcdiffVerifiable) options = Object.assign({}, options, { fixChecksum: false });
 
       var titleFromPatch =
         typeof patch.description === "string" && patch.description.trim() ? patch.description.trim() : null;
 
       self.postMessage({ type: "progress", stage: "patching", loaded: 0, total: 0 });
-      var patchedRom = RomPatcher.applyPatch(romBin, patch, options);
+      var patchedRom;
+      try {
+        patchedRom = RomPatcher.applyPatch(romBin, patch, options);
+      } catch (applyErr) {
+        // The vendored xdelta decoder indexes past the end of its buffers on instruction streams
+        // that are inconsistent with the ROM or the patch; report that instead of a raw TypeError.
+        if (vcdiff && applyErr && !applyErr.code && applyErr instanceof RangeError && /allocat|array buffer|invalid (typed )?array length/i.test(applyErr.message)) {
+          throw VcdiffSecondary.outOfMemoryError(vcdiff.info.targetSize);
+        }
+        if (vcdiff && applyErr && !applyErr.code && (applyErr instanceof TypeError || applyErr instanceof RangeError)) {
+          throw coded(
+            "patch-corrupt",
+            "This xdelta patch couldn't be applied: its instructions don't fit the ROM you selected. This usually means the ROM isn't the exact original the patch was made for; it can also mean the patch file is damaged."
+          );
+        }
+        throw applyErr;
+      }
 
       self.postMessage({ type: "progress", stage: "verifying-output", loaded: 0, total: 0 });
       var outputVerified = null;
+      var verification = null; // {checked, total} windows for xdelta; null for formats with one whole-file checksum, or none
       if (declared.targetCrc32) {
         // If the library set a copier header aside and put it back, the patch's checksum
         // covers the header-less part only.
@@ -214,6 +246,17 @@ self.onmessage = function (event) {
         }
       }
 
+      if (vcdiffVerifiable) {
+        // Every window's Adler-32 must match the patched bytes (a copier header the library put
+        // back in front is skipped). A mismatch means a wrong source ROM or a damaged patch.
+        var vcdiffOffset = romHeaderInfo ? romHeaderInfo.size : 0;
+        var vr = VcdiffSecondary.verifyOutput(patchBytes, patchedRom._u8array, vcdiffOffset);
+        verification = { checked: vr.checked, total: vr.windows };
+        // "verified" only when EVERY window carries a checksum and matched; otherwise the result is
+        // reported as partly / not verified (a mismatch has already thrown above).
+        outputVerified = vr.checked === vr.windows ? true : null;
+      }
+
       if (titleFromPatch) {
         var extMatch = patchedRom.fileName.match(/\.\w+$/i);
         patchedRom.fileName = sanitizeFileName(titleFromPatch) + (extMatch ? extMatch[0] : "");
@@ -227,6 +270,7 @@ self.onmessage = function (event) {
           patchedRomU8Array: patchedRom._u8array,
           fileName: patchedRom.fileName,
           outputVerified: outputVerified,
+          verification: verification,
         },
         [patchedRom._u8array.buffer]
       );

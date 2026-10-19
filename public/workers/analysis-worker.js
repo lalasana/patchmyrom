@@ -17,6 +17,7 @@
 
 self.importScripts(
   "/workers/patch-compat.js",
+  "/workers/vcdiff-secondary.js",
   "/vendor/rom-patcher-js/RomPatcher.js",
   "/vendor/rom-patcher-js/modules/BinFile.js",
   "/vendor/rom-patcher-js/modules/HashCalculator.js",
@@ -237,6 +238,10 @@ function analyzePatch(requestId, cacheKey, file) {
       damaged.code = preflight.code;
       throw damaged;
     }
+
+    // xdelta/VCDIFF: structural scan only (no decompression). Flags truncated/damaged patches and
+    // unsupported secondary compression (DJW/FGK/custom tables) now, before the user hits Apply.
+    if (VcdiffSecondary.isVcdiff(u8array)) VcdiffSecondary.inspect(u8array);
 
     var patchBin = new BinFile(u8array);
     patchBin.fileName = file.name;

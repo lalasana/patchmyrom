@@ -1,0 +1,110 @@
+[
+ {
+  "name": "empty",
+  "size": 0,
+  "crc32": 0,
+  "xzBytes": 32
+ },
+ {
+  "name": "one_byte",
+  "size": 1,
+  "crc32": 2363233923,
+  "xzBytes": 52
+ },
+ {
+  "name": "text_40k",
+  "size": 40000,
+  "crc32": 1364712936,
+  "xzBytes": 5028
+ },
+ {
+  "name": "random_150k_uncompressed_chunks",
+  "size": 150000,
+  "crc32": 1041557417,
+  "xzBytes": 150060
+ },
+ {
+  "name": "zeros_300k_long_matches",
+  "size": 300000,
+  "crc32": 4138918651,
+  "xzBytes": 168
+ },
+ {
+  "name": "mixed_120k_preset0",
+  "size": 120000,
+  "crc32": 896270754,
+  "xzBytes": 45360
+ },
+ {
+  "name": "mixed_120k_preset9e",
+  "size": 120000,
+  "crc32": 1737266144,
+  "xzBytes": 37824
+ },
+ {
+  "name": "text_40k_lc0_lp0_pb0",
+  "size": 40000,
+  "crc32": 789581934,
+  "xzBytes": 4900
+ },
+ {
+  "name": "text_40k_lc4_lp0_pb0",
+  "size": 40000,
+  "crc32": 4131416844,
+  "xzBytes": 4960
+ },
+ {
+  "name": "text_40k_lc0_lp4_pb0",
+  "size": 40000,
+  "crc32": 1329705746,
+  "xzBytes": 4916
+ },
+ {
+  "name": "text_40k_lc2_lp2_pb4",
+  "size": 40000,
+  "crc32": 1013176728,
+  "xzBytes": 5108
+ },
+ {
+  "name": "text_40k_lc3_lp0_pb2",
+  "size": 40000,
+  "crc32": 555733155,
+  "xzBytes": 5024
+ },
+ {
+  "name": "mixed_120k_check_crc32",
+  "size": 120000,
+  "crc32": 1137555166,
+  "xzBytes": 34508
+ },
+ {
+  "name": "mixed_120k_check_crc64",
+  "size": 120000,
+  "crc32": 3635139064,
+  "xzBytes": 32312
+ },
+ {
+  "name": "mixed_120k_check_sha256",
+  "size": 120000,
+  "crc32": 1685431797,
+  "xzBytes": 27968
+ },
+ {
+  "name": "zeros_20m_bomb",
+  "size": 20000000,
+  "crc32": 603280381,
+  "xzBytes": 3032
+ },
+ {
+  "name": "text_40k_dict4k",
+  "size": 40000,
+  "crc32": 1386183368,
+  "xzBytes": 5196
+ },
+ {
+  "name": "multiblock_xz_tool",
+  "size": 150000,
+  "crc32": 2503727050,
+  "xzBytes": 42568
+ }
+]

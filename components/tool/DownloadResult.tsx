@@ -1,6 +1,7 @@
 "use client";
 
-import { IconAlertTriangle, IconDownloadTray, IconShieldCheck } from "@/components/ui/icons";
+import { IconAlertTriangle, IconDownloadTray, IconInfo, IconShieldCheck } from "@/components/ui/icons";
+import { describeVerification } from "@/lib/output-verification";
 import { Button } from "@/components/ui/Button";
 import GbaEmulatorCta from "@/components/ui/GbaEmulatorCta";
 import { useIsAndroid } from "@/lib/gba-emulator-client";
@@ -16,6 +17,8 @@ export default function DownloadResult({ result }: DownloadResultProps) {
   const isAndroid = useIsAndroid();
   // Only offer the emulator for files it can play (.gba/.gbc/.gb) — never for .nds, .sfc, .nes, ...
   const showEmulatorCta = Boolean(result && isGameBoyFamilyFile(result.fileName));
+  // What we may truthfully say about the output: verified / partly / not verifiable (see lib/output-verification.ts).
+  const verification = result ? describeVerification(result.outputVerified, result.verification) : null;
   function handleDownload() {
     if (!result) return;
     const url = URL.createObjectURL(result.blob);
@@ -48,16 +51,25 @@ export default function DownloadResult({ result }: DownloadResultProps) {
         )}
       </span>
 
-      {result && result.outputVerified === true && (
-        <span className="inline-flex items-center gap-1.5 text-xs font-medium text-accent-green">
-          <IconShieldCheck className="h-3.5 w-3.5" />
-          Output verified against the patch&apos;s checksum
-        </span>
-      )}
-      {result && result.outputVerified === false && (
-        <span className="inline-flex items-center gap-1.5 text-xs font-medium text-amber-300">
-          <IconAlertTriangle className="h-3.5 w-3.5" />
-          Output checksum didn&apos;t match — double-check the file before using it
+      {verification && (
+        <span
+          role="status"
+          className={`inline-flex max-w-sm items-start gap-1.5 text-xs ${
+            verification.state === "verified"
+              ? "font-medium text-accent-green"
+              : verification.state === "unverified"
+                ? "text-muted"
+                : "font-medium text-amber-300"
+          }`}
+        >
+          {verification.state === "verified" ? (
+            <IconShieldCheck className="mt-0.5 h-3.5 w-3.5 flex-none" />
+          ) : verification.state === "unverified" ? (
+            <IconInfo className="mt-0.5 h-3.5 w-3.5 flex-none" />
+          ) : (
+            <IconAlertTriangle className="mt-0.5 h-3.5 w-3.5 flex-none" />
+          )}
+          <span>{verification.label}</span>
         </span>
       )}
 

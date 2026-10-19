@@ -77,7 +77,7 @@ export default function PatchAnalysisPanel({ analysis, status, progress, error }
       <p className="mt-1.5 text-[11px] text-muted/70">
         {analysis.canValidateSource
           ? "This format embeds a checksum — compatibility can be checked before applying."
-          : "This format doesn't embed a checksum, so compatibility can't be pre-verified."}
+          : "This format doesn't embed a checksum of the original ROM, so compatibility can't be pre-verified."}
       </p>
     </div>
   );

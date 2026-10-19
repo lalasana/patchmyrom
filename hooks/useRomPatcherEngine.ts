@@ -23,6 +23,8 @@ export type PatchResult = {
   fileName: string;
   /** true/false = verified against the patch's declared target checksum; null = format has none to check. */
   outputVerified: boolean | null;
+  /** For xdelta: how many checksum-carrying windows were checked, out of how many. null for other formats. */
+  verification?: { checked: number; total: number } | null;
 };
 
 export type RunPatchContext = {
@@ -37,6 +39,7 @@ type WorkerMessage =
       patchedRomU8Array: Uint8Array<ArrayBuffer>;
       fileName: string;
       outputVerified: boolean | null;
+      verification?: { checked: number; total: number } | null;
     }
   | { type: "error"; message: string; code?: string };
 
@@ -95,7 +98,7 @@ export function useRomPatcherEngine() {
         setProgress(data.loaded || data.total ? { loaded: data.loaded, total: data.total } : null);
       } else if (data.type === "success") {
         const blob = new Blob([data.patchedRomU8Array], { type: "application/octet-stream" });
-        setResult({ blob, fileName: data.fileName, outputVerified: data.outputVerified });
+        setResult({ blob, fileName: data.fileName, outputVerified: data.outputVerified, verification: data.verification ?? null });
         setStage("done");
         setProgress(null);
       } else if (data.type === "error") {

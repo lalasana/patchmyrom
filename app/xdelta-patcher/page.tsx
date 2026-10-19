@@ -60,16 +60,16 @@ const mistakes = [
   {
     problem: "Assuming every .xdelta file behaves the same way",
     solution:
-      "xdelta patches can optionally use secondary compression on top of the diff itself. Most ROM hacking patches don't, but it isn't guaranteed by the file extension alone.",
+      "xdelta patches can optionally use secondary compression on top of the diff itself, and the file extension doesn't tell you which kind you have. PatchMyROM handles uncompressed and LZMA-compressed patches (xdelta3's usual default) and tells you if it finds an older DJW or FGK one.",
     icon: <IconFileQuestion />,
   },
 ];
 
 const troubleshooting = [
   {
-    problem: "Patch fails with a \"secondary decompressor\" or similar error",
+    problem: "Patch is rejected for its \"secondary compression\"",
     solution:
-      "Some xdelta encoders can enable an extra compression pass on top of the base diff. Browser-based xdelta/VCDIFF decoders commonly support the plain, uncompressed form used by most ROM hacking patches, but not every optional variant. If this happens, check whether the hack offers a patch built without that option.",
+      "Some xdelta encoders add an extra compression pass on top of the base diff. PatchMyROM supports uncompressed and LZMA-compressed xdelta patches. If it names DJW or FGK compression, ask the hack's author for a patch built with `xdelta3 -S none` (or `-S lzma`), or apply that patch with the official xdelta3 command-line tool.",
     icon: <IconFileQuestion />,
   },
   {
@@ -81,7 +81,7 @@ const troubleshooting = [
   {
     problem: "Patch applies but the game doesn't boot",
     solution:
-      "Confirm your source ROM byte-for-byte matches what the patch was built against — xdelta diffs are extremely sensitive to any difference in the input file.",
+      "Confirm your source ROM byte-for-byte matches what the patch was built against — xdelta diffs are extremely sensitive to any difference in the input file. Most xdelta patches carry a built-in checksum; when they do, PatchMyROM checks the result and refuses to hand over a ROM that fails it, telling you the ROM probably isn't the exact original.",
     icon: <IconAlertTriangle />,
   },
 ];
@@ -97,7 +97,7 @@ const faqItems = [
   },
   {
     question: "Why did my xdelta patch fail when others worked fine?",
-    answer: "The most common cause is a base ROM that doesn't match exactly. A less common cause is a patch built with optional secondary compression that a particular decoder doesn't support.",
+    answer: "The most common cause is a base ROM that doesn't match exactly. A less common cause is a patch built with DJW or FGK secondary compression, which PatchMyROM can't decode (uncompressed and LZMA patches are supported).",
   },
   {
     question: "Does patching a huge ROM in a browser actually work?",
