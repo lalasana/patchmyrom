@@ -295,6 +295,14 @@
   /** Turns the vendored library's terse errors into messages a person can act on. */
   function explainError(err) {
     var raw = err && err.message ? String(err.message) : "";
+    // The browser refused an allocation (typed arrays for the ROM, patch or output).
+    if (err && err.name === "RangeError" && /allocation failed|invalid (typed )?array length|array buffer|out of memory/i.test(raw)) {
+      return {
+        code: "out-of-memory",
+        message:
+          "Your browser ran out of memory while handling these files. Close other tabs and try again, or use a desktop computer for very large ROMs.",
+      };
+    }
     if (/patch checksum mismatch/i.test(raw)) {
       return {
         code: "patch-corrupt",

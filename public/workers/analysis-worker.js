@@ -38,7 +38,13 @@ var CHUNK_SIZE = 8 * 1024 * 1024; // 8MB
 /** Reads a File/Blob into a Uint8Array in chunks, reporting real byte progress. */
 function readFileChunked(file, onProgress) {
   var total = file.size;
-  var out = new Uint8Array(total);
+  var out;
+  try {
+    out = new Uint8Array(total);
+  } catch (allocError) {
+    // an exhausted browser: report through the normal error path (friendly message), not as an uncaught exception
+    return Promise.reject(allocError);
+  }
   var offset = 0;
 
   function readNext() {
@@ -278,7 +284,10 @@ self.onmessage = function (event) {
         type: "error",
         requestId: data.requestId,
         lane: "rom",
-        message: (err && err.message) || "Could not analyze this ROM file.",
+        code: PatchCompat.explainError(err).code,
+        message:
+          (err && err.name === "RangeError" ? PatchCompat.explainError(err).message : err && err.message) ||
+          "Could not analyze this ROM file.",
       });
     });
   } else if (data.type === "analyze-patch") {

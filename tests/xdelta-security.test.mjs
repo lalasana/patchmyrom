@@ -5,6 +5,7 @@ import assert from "node:assert/strict";
 import fs from "node:fs";
 import path from "node:path";
 import { fileURLToPath } from "node:url";
+import vm from "node:vm";
 import { createRequire } from "node:module";
 import { createWorker, fakeFile } from "./helpers/worker-harness.mjs";
 import { describeVerification } from "../lib/output-verification.ts";
@@ -335,4 +336,50 @@ describe("seeded structural fuzzing of the whole prepare() path", () => {
       assert.ok(coded > ok, "most mutations must be rejected");
     });
   }
+});
+
+// -------------------------------------------------------------------------------------------------
+describe("memory pressure inside the worker: graceful, friendly failure for every format", () => {
+  async function applyWithFailingAllocator(rom, p, name) {
+    const w = createWorker("rom-patcher-worker.js");
+    // Installed from INSIDE the worker's realm: any big typed-array allocation now fails like an
+    // exhausted browser would (the worker's own Uint8Array is a vm intrinsic, not a sandbox property).
+    vm.runInContext(
+      `(function () {
+        var Real = Uint8Array;
+        globalThis.Uint8Array = class extends Real {
+          constructor(a, ...rest) {
+            if (typeof a === "number" && a > 50000) throw new RangeError("Array buffer allocation failed");
+            super(a, ...rest);
+          }
+        };
+      })();`,
+      w.context
+    );
+    return w.run({ type: "patch", romFile: fakeFile(rom, name), patchFile: fakeFile(p, "p.bin"), options: OPTIONS, romCrc32: null });
+  }
+
+  test("xdelta (LZMA): an allocation failure becomes 'out-of-memory', not a raw RangeError", async () => {
+    const r = await applyWithFailingAllocator(SRC, patch("lzma"), "game.nds");
+    noOutput(r);
+    assert.equal(r.code, "out-of-memory");
+    assert.match(r.message, /ran out of memory|couldn't allocate/);
+    assert.doesNotMatch(r.message, /Array buffer allocation failed/);
+  });
+
+  test("BPS: the same, via the shared translator", async () => {
+    const fx = await import("./helpers/fixtures.mjs");
+    const src = fx.makeSyntheticGba(0x20000, 1);
+    const dst = fx.applyEdits(src, fx.DEFAULT_EDITS);
+    const r = await applyWithFailingAllocator(src, fx.buildBps(src, dst), "game.gba");
+    noOutput(r);
+    assert.equal(r.code, "out-of-memory");
+    assert.doesNotMatch(r.message, /Array buffer allocation failed/);
+  });
+
+  test("an unrelated RangeError is not mislabelled as an out-of-memory condition", () => {
+    const compat = createRequire(import.meta.url)("../public/workers/patch-compat.js");
+    assert.notEqual(compat.explainError(new RangeError("Maximum call stack size exceeded")).code, "out-of-memory");
+    assert.notEqual(compat.explainError(new Error("Array buffer allocation failed")).code, "out-of-memory");
+  });
 });

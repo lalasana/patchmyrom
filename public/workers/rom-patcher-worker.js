@@ -39,7 +39,13 @@ var CHUNK_SIZE = 8 * 1024 * 1024; // 8MB — real progress granularity for 32-51
 /** Reads a File/Blob into a Uint8Array in chunks, reporting real byte progress. */
 function readFileChunked(file, stage, onProgress) {
   var total = file.size;
-  var out = new Uint8Array(total);
+  var out;
+  try {
+    out = new Uint8Array(total);
+  } catch (allocError) {
+    // an exhausted browser: report through the normal error path (friendly message), not as an uncaught exception
+    return Promise.reject(allocError);
+  }
   var offset = 0;
 
   function readNext() {
