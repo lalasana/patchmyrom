@@ -24,7 +24,6 @@ export const siteConfig = {
 } as const;
 
 export const navLinks = [
-  { href: "/pokemon-rom-patcher", label: "Pokemon ROM Patcher" },
   { href: "/patch-formats", label: "Patch Formats" },
   { href: "/how-to-patch-pokemon-rom-hacks", label: "How to Patch" },
   { href: "/troubleshooting", label: "Troubleshooting" },
