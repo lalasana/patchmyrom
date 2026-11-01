@@ -22,14 +22,14 @@ export default function Breadcrumbs({ items }: { items: Crumb[] }) {
   };
 
   return (
-    <nav aria-label="Breadcrumb" className="text-sm text-muted">
+    <nav aria-label="Breadcrumb" className="w-fit max-w-full rounded-full border border-border bg-card/60 px-4 py-1.5 text-sm text-muted shadow-[0_6px_16px_-10px_rgba(0,0,0,0.9)] backdrop-blur-sm">
       <JsonLd data={jsonLd} />
       <ol className="flex flex-wrap items-center gap-1">
         {allItems.map((item, index) => (
           <li key={item.href} className="flex items-center gap-1">
-            {index > 0 && <span className="text-border">/</span>}
+            {index > 0 && <span aria-hidden className="text-accent-green/60">›</span>}
             {index === allItems.length - 1 ? (
-              <span className="text-foreground">{item.label}</span>
+              <span className="font-semibold text-foreground">{item.label}</span>
             ) : (
               <Link href={item.href} className="hover:text-accent-blue transition-colors">
                 {item.label}

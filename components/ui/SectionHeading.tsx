@@ -19,13 +19,16 @@ type SectionHeadingProps = {
 export default function SectionHeading({ icon, title, subtitle, accent = "blue" }: SectionHeadingProps) {
   return (
     <div className="flex items-center gap-3">
-      <span className={`flex h-10 w-10 flex-none items-center justify-center rounded-xl ${accentClasses[accent]}`}>
+      <span
+        className={`flex h-10 w-10 flex-none items-center justify-center rounded-xl border border-current/20 shadow-[0_3px_0_0_rgba(0,0,0,0.35)] ${accentClasses[accent]}`}
+      >
         <span className="[&>svg]:h-5 [&>svg]:w-5">{icon}</span>
       </span>
       <div>
-        <h2 className="text-2xl font-semibold text-foreground">{title}</h2>
+        <h2 className="text-2xl font-bold tracking-tight text-foreground sm:text-3xl">{title}</h2>
         {subtitle && <p className="text-sm text-muted">{subtitle}</p>}
       </div>
+      <span aria-hidden className="pixel-rule ml-2 hidden flex-1 sm:block" />
     </div>
   );
 }

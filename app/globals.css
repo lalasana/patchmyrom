@@ -9,6 +9,7 @@
   --accent-green: #22c55e;
   --accent-green-dark: #16a34a;
   --accent-blue: #38bdf8;
+  --accent-purple: #a78bfa;
   --foreground: #f8fafc;
   --muted: #cbd5e1;
 }
@@ -22,6 +23,7 @@
   --color-accent-green: var(--accent-green);
   --color-accent-green-dark: var(--accent-green-dark);
   --color-accent-blue: var(--accent-blue);
+  --color-accent-purple: var(--accent-purple);
   --color-foreground: var(--foreground);
   --color-muted: var(--muted);
   --font-sans: var(--font-geist-sans);
@@ -78,4 +80,154 @@ body {
   -webkit-mask-composite: xor;
   mask-composite: exclude;
   pointer-events: none;
+}
+
+/* ---------- Retro window frame (title bar + body) ---------- */
+.retro-window {
+  position: relative;
+  border-radius: 1rem;
+  border: 2px solid var(--border);
+  background: linear-gradient(180deg, rgba(255, 255, 255, 0.03), transparent 30%), var(--card);
+  box-shadow:
+    6px 6px 0 0 rgba(0, 0, 0, 0.45),
+    0 0 0 1px rgba(57, 224, 127, 0.12),
+    0 30px 80px -30px rgba(57, 224, 127, 0.25);
+}
+
+.retro-titlebar {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  padding: 0.55rem 0.9rem;
+  border-bottom: 2px solid var(--border);
+  border-radius: calc(1rem - 2px) calc(1rem - 2px) 0 0;
+  background: linear-gradient(90deg, rgba(57, 224, 127, 0.18), rgba(76, 201, 240, 0.14) 55%, rgba(167, 139, 250, 0.16));
+}
+
+.retro-dot {
+  width: 0.65rem;
+  height: 0.65rem;
+  border-radius: 2px;
+  box-shadow: inset 0 -2px 0 rgba(0, 0, 0, 0.3);
+}
+
+/* ---------- Pixel cards (art-headed cards used by the redesigned components) ---------- */
+@layer components {
+  .pixel-card {
+    position: relative;
+    border-radius: 1rem;
+    border: 1px solid rgba(120, 130, 210, 0.22);
+    background:
+      radial-gradient(120% 80% at 0% 0%, rgba(57, 224, 127, 0.07), transparent 55%),
+      linear-gradient(180deg, rgba(255, 255, 255, 0.045), rgba(255, 255, 255, 0) 45%),
+      var(--card);
+    box-shadow:
+      inset 0 1px 0 rgba(255, 255, 255, 0.07),
+      0 18px 34px -22px rgba(0, 0, 0, 0.85);
+    transition:
+      transform 0.25s cubic-bezier(0.22, 1, 0.36, 1),
+      border-color 0.25s ease,
+      box-shadow 0.25s ease;
+  }
+
+  /* gradient hairline that lights up on hover */
+  .pixel-card::before {
+    content: "";
+    position: absolute;
+    inset: -1px;
+    border-radius: inherit;
+    padding: 1px;
+    background: linear-gradient(135deg, rgba(57, 224, 127, 0.9), rgba(76, 201, 240, 0.7) 50%, rgba(167, 139, 250, 0.8));
+    -webkit-mask: linear-gradient(#fff 0 0) content-box, linear-gradient(#fff 0 0);
+    -webkit-mask-composite: xor;
+    mask-composite: exclude;
+    opacity: 0;
+    transition: opacity 0.25s ease;
+    pointer-events: none;
+  }
+
+  a.pixel-card:hover,
+  .pixel-card.pixel-hover:hover {
+    transform: translateY(-5px);
+    box-shadow:
+      inset 0 1px 0 rgba(255, 255, 255, 0.09),
+      0 26px 44px -22px rgba(57, 224, 127, 0.28),
+      0 0 0 1px rgba(57, 224, 127, 0.05);
+  }
+
+  a.pixel-card:hover::before,
+  .pixel-card.pixel-hover:hover::before {
+    opacity: 1;
+  }
+
+  /* illustration band on top of a card */
+  .card-art {
+    border-bottom: 1px solid rgba(120, 130, 210, 0.18);
+  }
+
+  .card-art::before {
+    content: "";
+    position: absolute;
+    inset: 0;
+    background-image: radial-gradient(rgba(255, 255, 255, 0.16) 1px, transparent 1.3px);
+    background-size: 16px 16px;
+    mask-image: radial-gradient(ellipse 70% 90% at 50% 50%, black 30%, transparent 100%);
+    opacity: 0.6;
+  }
+
+  a.pixel-card:hover .card-art svg,
+  .pixel-hover:hover .card-art svg {
+    transform: scale(1.06) rotate(-1deg);
+  }
+
+  .card-art svg {
+    transition: transform 0.35s cubic-bezier(0.22, 1, 0.36, 1);
+  }
+}
+
+/* ---------- Section divider: pixel dashes ---------- */
+.pixel-rule {
+  height: 4px;
+  width: 100%;
+  background-image: linear-gradient(to right, var(--border) 0 8px, transparent 8px 16px);
+  background-size: 16px 4px;
+  opacity: 0.9;
+}
+
+/* ---------- Inner page hero ---------- */
+.page-hero h1 {
+  font-size: clamp(2rem, 5vw, 3.25rem);
+  line-height: 1.05;
+  font-weight: 800;
+  letter-spacing: -0.02em;
+  background-image: linear-gradient(100deg, #ffffff 15%, var(--accent-green) 55%, var(--accent-blue) 100%);
+  -webkit-background-clip: text;
+  background-clip: text;
+  -webkit-text-fill-color: transparent;
+  color: transparent;
+}
+
+/* ---------- Patcher tool ---------- */
+.progress-stripes {
+  background-image:
+    repeating-linear-gradient(
+      -45deg,
+      rgba(255, 255, 255, 0.28) 0 8px,
+      transparent 8px 16px
+    ),
+    linear-gradient(90deg, var(--accent-green), var(--accent-blue));
+  background-size: 22.6px 22.6px, 100% 100%;
+  animation: stripes-move 0.9s linear infinite;
+}
+
+@keyframes stripes-move {
+  to {
+    background-position: 22.6px 0, 0 0;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .progress-stripes {
+    animation: none !important;
+  }
 }

@@ -32,19 +32,19 @@ export default function FaqAccordion({ items }: { items: FaqItem[] }) {
         return (
           <div
             key={item.question}
-            className={`card overflow-hidden transition-colors ${isOpen ? "border-accent-blue/30" : "hover:border-border/80"}`}
+            className={`pixel-card overflow-hidden ${isOpen ? "!border-accent-green/60 !shadow-[4px_4px_0_0_rgba(57,224,127,0.25)]" : "hover:!border-accent-blue/50"}`}
           >
             <button
               type="button"
-              className="flex w-full items-center justify-between gap-4 px-4 py-4 text-left font-medium text-foreground transition-colors hover:bg-card-hover"
+              className="flex w-full items-center justify-between gap-4 px-4 py-4 text-left text-lg font-bold text-foreground transition-colors hover:bg-card-hover"
               aria-expanded={isOpen}
               onClick={() => setOpenIndex(isOpen ? null : index)}
             >
               <span>{item.question}</span>
               <span
                 aria-hidden
-                className={`flex h-6 w-6 flex-none items-center justify-center rounded-full text-sm transition-colors ${
-                  isOpen ? "bg-accent-blue/15 text-accent-blue" : "bg-border/40 text-muted"
+                className={`flex h-7 w-7 flex-none items-center justify-center rounded-md border-2 text-sm font-bold transition-colors ${
+                  isOpen ? "border-accent-green bg-accent-green/15 text-accent-green" : "border-border bg-border/30 text-muted"
                 }`}
               >
                 {isOpen ? "−" : "+"}

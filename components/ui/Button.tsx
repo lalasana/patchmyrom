@@ -8,11 +8,11 @@ const baseClasses =
 
 const variantClasses: Record<ButtonVariant, string> = {
   primary:
-    "bg-gradient-to-r from-accent-green to-accent-green-dark text-background shadow-lg shadow-accent-green/20 hover:brightness-110 hover:shadow-accent-green/30 hover:-translate-y-0.5 active:translate-y-0 focus-visible:ring-accent-green",
+    "bg-gradient-to-b from-accent-green to-accent-green-dark text-background shadow-[0_4px_0_0_#0f6b30,0_8px_20px_-6px_rgba(57,224,127,0.45)] hover:brightness-110 hover:-translate-y-0.5 active:translate-y-1 active:shadow-[0_0_0_0_#0f6b30] focus-visible:ring-accent-green",
   secondary:
-    "border border-accent-blue/40 bg-accent-blue/10 text-accent-blue hover:border-accent-blue/70 hover:bg-accent-blue/15 focus-visible:ring-accent-blue",
+    "border border-accent-blue/40 bg-accent-blue/10 text-accent-blue shadow-[0_3px_0_0_rgba(76,201,240,0.25)] hover:border-accent-blue/70 hover:bg-accent-blue/15 active:translate-y-0.5 active:shadow-none focus-visible:ring-accent-blue",
   outline:
-    "border border-border text-foreground hover:border-accent-blue/50 hover:bg-card-hover focus-visible:ring-accent-blue",
+    "border border-border bg-card/40 text-foreground shadow-[0_3px_0_0_rgba(0,0,0,0.35)] hover:border-accent-blue/50 hover:bg-card-hover active:translate-y-0.5 active:shadow-none focus-visible:ring-accent-blue",
 };
 
 function buttonClasses(variant: ButtonVariant, fullWidth: boolean, className?: string) {
