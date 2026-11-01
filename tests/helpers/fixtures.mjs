@@ -141,6 +141,17 @@ export function buildUps(source, target, { sourceCrc, targetCrc } = {}) {
   return concat([body, u32le(crc32(body))]);
 }
 
+/** Star Rod (PMSR) patch: "PMSR", big-endian record count, then (offset, length, bytes) records. */
+export function buildPmsr(records, { count = records.length } = {}) {
+  const parts = [Uint8Array.from([0x50, 0x4d, 0x53, 0x52]), u32be(count)];
+  for (const { offset, bytes, length = bytes.length } of records) parts.push(u32be(offset), u32be(length), Uint8Array.from(bytes));
+  return Uint8Array.from(parts.flatMap((p) => [...p]));
+}
+
+function u32be(n) {
+  return Uint8Array.from([(n >>> 24) & 0xff, (n >>> 16) & 0xff, (n >>> 8) & 0xff, n & 0xff]);
+}
+
 /** Valid IPS patch from a list of {offset, bytes} edits (no checksum — IPS has none). */
 export function buildIps(edits) {
   const chunks = [new TextEncoder().encode("PATCH")];

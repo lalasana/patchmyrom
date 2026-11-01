@@ -13,8 +13,11 @@
  *
  * Honesty rules the code below enforces:
  *   - "compatible" is only ever returned when a checksum (or equivalent data the patch format
- *     really embeds) was compared and matched. IPS, PPF, BDF and xdelta embed none, so they are
- *     always "cannot-verify" — never "compatible".
+ *     really embeds) of the WHOLE original ROM was compared and matched. IPS, PPF, BDF and xdelta
+ *     embed none, so they are always "cannot-verify" — never "compatible". APS (N64) stores only a
+ *     game ID and header checksums and APS (GBA) only the checksums of the blocks it changes: a match
+ *     there is reported as "cannot-verify" with the partial match explained; a difference is still a
+ *     real "mismatch".
  *   - Platform detection reports HOW sure it is: "confirmed" (a header check passed),
  *     "extension-only" (only the file name says so) or "unknown".
  */
@@ -179,13 +182,77 @@
 
   // ------------------------------------------------------------------ platform detection
 
+  var MB = 1024 * 1024;
+
   /**
-   * Largest ROM the compatibility checker will load into memory whole. Only RUP, APS and PMSR patches need
-   * that (their validateSource() in the patching library reads the ROM at arbitrary offsets or hashes it as
-   * one block); UPS, BPS, IPS, xdelta and PPF checks stream the ROM and are not limited. Above this size the
-   * check reports "cannot verify" with an explanation instead of risking the tab running out of memory.
+   * Hard ceiling for the ROM size the compatibility checker will load into memory whole. Only RUP, APS and
+   * PMSR patches need that (their validateSource() in the patching library reads the ROM at arbitrary
+   * offsets or hashes it as one block); UPS, BPS, IPS, xdelta and PPF checks stream the ROM and are not
+   * limited. Above the limit that applies to the device (see pickWholeRomLimit) the check reports "cannot
+   * verify" with an explanation instead of risking the tab running out of memory.
    */
-  var WHOLE_ROM_LIMIT = 256 * 1024 * 1024;
+  var WHOLE_ROM_LIMIT = 256 * MB;
+
+  /**
+   * Limit used when the caller doesn't say what device it runs on (older callers, the Node tests): the
+   * conservative mobile value. The app always passes pickWholeRomLimit(...) explicitly.
+   */
+  var DEFAULT_WHOLE_ROM_LIMIT = 64 * MB;
+
+  /**
+   * Chooses how large a ROM may be loaded whole on this device.
+   *
+   * Reasoning (measured, see README): validating a RUP or APS (GBA) patch peaks at about 1.2x the ROM size
+   * in the worker (the ROM bytes plus the library's copy of them), plus the page itself. A phone browser
+   * tab is killed far earlier than a desktop one and reports little about it, so:
+   *   - 2 GB of device memory or less     -> 32 MB (also covers every GBA/NDS/SNES-sized ROM)
+   *   - any mobile browser                -> 64 MB
+   *   - desktop, memory not reported      -> 128 MB (Firefox and Safari don't expose deviceMemory)
+   *   - desktop reporting less than 8 GB  -> 64 MB
+   *   - desktop reporting 8 GB or more    -> 256 MB (the ceiling)
+   * `deviceMemory` is the browser's rounded figure in GB (navigator.deviceMemory, capped at 8 by browsers).
+   *
+   * @param {{deviceMemory?:number|null, mobile?:boolean}} [env]
+   * @returns {{bytes:number, tier:string, reason:string}}
+   */
+  function pickWholeRomLimit(env) {
+    var memory = env && typeof env.deviceMemory === "number" && env.deviceMemory > 0 ? env.deviceMemory : null;
+    var mobile = !!(env && env.mobile);
+    if (memory !== null && memory <= 2) {
+      return { bytes: 32 * MB, tier: "low-memory", reason: "this device reports " + memory + " GB of memory or less" };
+    }
+    if (mobile) return { bytes: 64 * MB, tier: "mobile", reason: "mobile browsers close tabs that use a lot of memory" };
+    if (memory === null) return { bytes: 128 * MB, tier: "unknown-desktop", reason: "this browser doesn't report how much memory the device has" };
+    if (memory < 8) return { bytes: 64 * MB, tier: "modest-memory", reason: "this device reports " + memory + " GB of memory" };
+    return { bytes: WHOLE_ROM_LIMIT, tier: "desktop", reason: "this device reports 8 GB of memory or more" };
+  }
+
+  /** Reads the two facts pickWholeRomLimit needs from a navigator-like object (kept pure so it can be tested). */
+  function deviceEnvironmentFrom(nav) {
+    if (!nav) return {};
+    var ua = typeof nav.userAgent === "string" ? nav.userAgent : "";
+    var mobile;
+    if (nav.userAgentData && typeof nav.userAgentData.mobile === "boolean") mobile = nav.userAgentData.mobile;
+    else mobile = /Android|iPhone|iPad|iPod|Mobile|Silk/i.test(ua) || (nav.platform === "MacIntel" && typeof nav.maxTouchPoints === "number" && nav.maxTouchPoints > 1);
+    return { deviceMemory: typeof nav.deviceMemory === "number" ? nav.deviceMemory : null, mobile: !!mobile };
+  }
+
+  /**
+   * How long the main thread should wait for a sign of life while the worker is inside one synchronous
+   * step over `bytes` bytes (hashing the whole ROM for MD5, checking APS blocks). Generous on purpose:
+   * a slow phone may only manage 2 MB/s, and a false "stopped responding" is worse than a longer wait.
+   */
+  function stageBudgetMs(bytes) {
+    var n = typeof bytes === "number" && bytes > 0 ? bytes : 0;
+    return 30000 + Math.ceil(n / (2 * MB)) * 1000;
+  }
+
+  /** Progress, rounded down to 0/25/50/75/100, for screen-reader announcements (so they aren't read out at every update). */
+  function progressBucket(loaded, total) {
+    if (!(total > 0) || loaded !== loaded) return 0; // also covers NaN
+    var pct = Math.max(0, Math.min(100, (loaded / total) * 100));
+    return Math.floor(pct / 25) * 25;
+  }
 
   /** Bytes the hash worker keeps from the start of a file so platform detection can inspect headers. */
   var HEAD_BYTES = 0x30000;
@@ -227,6 +294,7 @@
 
   function makeReader(head, probes, size) {
     return {
+      size: size,
       /** Byte at an absolute file offset, or -1 when that part of the file wasn't kept / doesn't exist. */
       byte: function (offset) {
         if (offset >= size) return -1;
@@ -300,25 +368,48 @@
     for (var i = 0xa0; i <= 0xbc; i++) sum += r.byte(i);
     var complement = (-(sum + 0x19)) & 0xff;
     if (r.byte(0xbd) !== complement) return null;
-    return { platform: "Game Boy Advance", family: "gba", evidence: ["GBA header: fixed value 96h at 0xB2 and a valid header complement check at 0xBD"] };
+    // The byte at 0xB5 and the six bytes after it are reserved and zero on every real GBA ROM. Together with the
+    // two checks above, unrelated data matching by chance is practically impossible.
+    for (var z = 0xb5; z <= 0xbb; z++) if (r.byte(z) !== 0) return null;
+    return { platform: "Game Boy Advance", family: "gba", evidence: ["GBA header: fixed value 96h at 0xB2, a valid header complement check at 0xBD and the reserved bytes at 0xB5–0xBB all zero"] };
   }
 
   function checkNds(r) {
     if (!r.has(0, 0x160)) return null;
     var stored = r.u16le(0x15e);
     if (crc16Modbus(r, 0, 0x15e) !== stored) return null;
-    var dsi = r.byte(0x12) === 0x02 || r.byte(0x12) === 0x03;
-    return { platform: dsi ? "Nintendo DSi" : "Nintendo DS", family: "nds", evidence: ["Nintendo DS header with a valid header CRC16 at 0x15E"] };
+    // Nintendo's boot-logo checksum is the same constant (CF56h) in every DS/DSi header, and the unit code is 00h, 02h or 03h.
+    if (r.u16le(0x15c) !== 0xcf56) return null;
+    var unit = r.byte(0x12);
+    if (unit !== 0x00 && unit !== 0x02 && unit !== 0x03) return null;
+    var dsi = unit === 0x02 || unit === 0x03;
+    return {
+      platform: dsi ? "Nintendo DSi" : "Nintendo DS",
+      family: "nds",
+      evidence: ["Nintendo DS header with a valid header CRC16 at 0x15E, the standard boot-logo checksum (CF56h) and a valid unit code"],
+    };
   }
+
+  // Cartridge types that exist (0x147). Anything else in that byte is not a Game Boy header.
+  var GB_CART_TYPES = {};
+  [0x00, 0x01, 0x02, 0x03, 0x05, 0x06, 0x08, 0x09, 0x0b, 0x0c, 0x0d, 0x0f, 0x10, 0x11, 0x12, 0x13, 0x19, 0x1a, 0x1b, 0x1c, 0x1d, 0x1e, 0x20, 0x22, 0xfc, 0xfd, 0xfe, 0xff].forEach(function (t) {
+    GB_CART_TYPES[t] = true;
+  });
 
   function checkGameBoy(r) {
     if (!r.has(0, 0x150)) return null;
     var x = 0;
     for (var i = 0x134; i <= 0x14c; i++) x = (x - r.byte(i) - 1) & 0xff;
     if (x !== r.byte(0x14d)) return null;
+    // The checksum alone is a 1-in-256 coincidence for any unrelated file, so the other fields have to make sense too:
+    // a known cartridge type, a ROM-size code that exists, a RAM-size code that exists, and a size that is a whole
+    // number of 16 KB banks.
+    var romSize = r.byte(0x148);
+    var validRomSize = romSize <= 0x08 || (romSize >= 0x52 && romSize <= 0x54);
+    if (!GB_CART_TYPES[r.byte(0x147)] || !validRomSize || r.byte(0x149) > 0x05 || r.size % 0x4000 !== 0) return null;
     var cgb = r.byte(0x143);
     var platform = cgb === 0xc0 ? "Game Boy Color" : cgb === 0x80 ? "Game Boy Color (also runs on Game Boy)" : "Game Boy";
-    return { platform: platform, family: "gameboy", evidence: ["Game Boy cartridge header with a valid header checksum at 0x14D"] };
+    return { platform: platform, family: "gameboy", evidence: ["Game Boy cartridge header with a valid header checksum at 0x14D and consistent cartridge, ROM-size and RAM-size fields"] };
   }
 
   function checkGenesis(r) {
@@ -367,6 +458,10 @@
         if (((complement + checksum) & 0xffff) !== 0xffff) continue;
         // Excludes the all-zero / all-FF look-alikes that also "add up".
         if ((complement === 0 && checksum === 0) || (complement === 0xffff && checksum === 0xffff)) continue;
+        // The map-mode byte is 0x20–0x3F on every SNES ROM, and the ROM-size byte is a power of two up to 8 MB (2^13 KB).
+        var mapMode = r.byte(h + 0x15);
+        var romSizeCode = r.byte(h + 0x17);
+        if (mapMode === -1 || (mapMode & 0xe0) !== 0x20 || romSizeCode === -1 || romSizeCode > 0x0d) continue;
         found = { mapping: SNES_CANDIDATES[c].mapping, headerAddress: h, copierHeader: shift === 512 };
       }
     }
@@ -486,6 +581,207 @@
     return out;
   }
 
+  // ------------------------------------------------------------------ patch structure preflight
+
+  // Same order and same prefixes as RomPatcher.parsePatchFile() uses to pick a parser.
+  var PATCH_MAGICS = [
+    ["IPS", "PATCH"],
+    ["UPS", "UPS1"],
+    ["APS", "APS10"],
+    ["APSGBA", "APS1"],
+    ["BPS", "BPS1"],
+    ["RUP", "NINJA2"],
+    ["PPF", "PPF"],
+    ["BDF", "BSDIFF40"],
+    ["PMSR", "PMSR"],
+  ];
+
+  function startsWithAscii(u8, text, at) {
+    var base = at || 0;
+    if (!u8 || u8.length < base + text.length) return false;
+    for (var i = 0; i < text.length; i++) if (u8[base + i] !== text.charCodeAt(i)) return false;
+    return true;
+  }
+
+  /** The patch format a file claims to be from its first bytes, or null. Says nothing about whether the file is intact. */
+  function detectPatchFormat(u8) {
+    for (var i = 0; i < PATCH_MAGICS.length; i++) if (startsWithAscii(u8, PATCH_MAGICS[i][1])) return PATCH_MAGICS[i][0];
+    if (u8 && u8.length >= 3 && u8[0] === 0xd6 && u8[1] === 0xc3 && u8[2] === 0xc4) return "VCDIFF";
+    return null;
+  }
+
+  function structureDamaged(format, detail) {
+    return {
+      ok: false,
+      code: "patch-corrupt",
+      format: format,
+      message:
+        "This " +
+        formatLabel(format) +
+        " patch file is damaged or incomplete" +
+        (detail ? ": " + detail : "") +
+        ". Download the patch again from its original source, and don't edit it or transfer it as text.",
+    };
+  }
+
+  function u32be(u8, at) {
+    return ((u8[at] << 24) | (u8[at + 1] << 16) | (u8[at + 2] << 8) | u8[at + 3]) >>> 0;
+  }
+
+  /**
+   * PMSR: "PMSR", a big-endian record count, then that many (offset, length, bytes) records. The patching library
+   * allocates `length` array slots per record without looking at the file size, so a damaged count or length would
+   * keep the worker busy (or out of memory) for as long as it likes. Every record must fit inside the file.
+   */
+  function preflightPmsr(u8) {
+    if (u8.length < 8) return structureDamaged("PMSR", "it is too short to hold a record list");
+    var count = u32be(u8, 4);
+    if (count > Math.floor((u8.length - 8) / 8)) {
+      return structureDamaged("PMSR", "it announces " + count + " records but the file is only " + u8.length + " bytes long");
+    }
+    var pos = 8;
+    for (var i = 0; i < count; i++) {
+      if (pos + 8 > u8.length) return structureDamaged("PMSR", "record " + (i + 1) + " is cut off");
+      var length = u32be(u8, pos + 4);
+      pos += 8;
+      if (length > u8.length - pos) return structureDamaged("PMSR", "record " + (i + 1) + " claims " + length + " bytes but only " + (u8.length - pos) + " are left in the file");
+      pos += length;
+    }
+    return { ok: true, format: "PMSR" };
+  }
+
+  /** Little-endian 64-bit number that the library can only read correctly when its upper four bytes are zero. */
+  function u64leLow(u8, at) {
+    if (u8[at + 4] || u8[at + 5] || u8[at + 6] || u8[at + 7]) return null;
+    return (u8[at] | (u8[at + 1] << 8) | (u8[at + 2] << 16) | (u8[at + 3] << 24)) >>> 0;
+  }
+
+  function isBz2Stream(u8, at) {
+    return startsWithAscii(u8, "BZh", at) && u8[at + 3] >= 0x31 && u8[at + 3] <= 0x39;
+  }
+
+  /**
+   * BDF (bsdiff): 32-byte header (magic, control/diff compressed sizes, new size) followed by three bzip2 streams.
+   * The library reads sizes with a 64-bit reader that only works when the upper four bytes are zero, then allocates
+   * arrays of the sizes found in the (compressed) control stream. Checked here: the header numbers fit the file, each
+   * stream starts like bzip2, and — when a bzip2 decoder is supplied — the control records fit the decompressed streams.
+   * Decompressing here is the same work the library does next, and is as exposed to a "decompression bomb"; see README.
+   */
+  function preflightBdf(u8, deps) {
+    if (u8.length < 32) return structureDamaged("BDF", "it is shorter than the 32-byte header");
+    var control = u64leLow(u8, 8);
+    var diff = u64leLow(u8, 16);
+    var newSize = u64leLow(u8, 24);
+    if (control === null || diff === null || newSize === null) return structureDamaged("BDF", "a size in its header is larger than 4 GB");
+    if (control + diff > u8.length - 32) return structureDamaged("BDF", "its header announces " + (control + diff) + " bytes of compressed data but the file has only " + (u8.length - 32));
+    var diffAt = 32 + control;
+    var extraAt = diffAt + diff;
+    if (!isBz2Stream(u8, 32) || !isBz2Stream(u8, diffAt) || !isBz2Stream(u8, extraAt)) return structureDamaged("BDF", "one of its three compressed sections is missing");
+    var decompress = deps && deps.bz2 && typeof deps.bz2.decompress === "function" ? deps.bz2.decompress : null;
+    if (!decompress) return { ok: true, format: "BDF" };
+
+    var ctrl;
+    var diffData;
+    var extraData;
+    try {
+      ctrl = decompress(u8.subarray(32, diffAt));
+      diffData = decompress(u8.subarray(diffAt, extraAt));
+      extraData = decompress(u8.subarray(extraAt));
+    } catch {
+      return structureDamaged("BDF", "one of its compressed sections can't be decompressed");
+    }
+    if (ctrl.length % 24 !== 0) return structureDamaged("BDF", "its control data is not a whole number of records");
+    var usedDiff = 0;
+    var usedExtra = 0;
+    for (var p = 0; p < ctrl.length; p += 24) {
+      var diffLen = u64leLow(ctrl, p);
+      var extraLen = u64leLow(ctrl, p + 8);
+      if (diffLen === null || extraLen === null) return structureDamaged("BDF", "record " + (p / 24 + 1) + " has an impossible length");
+      if (diffLen > diffData.length - usedDiff || extraLen > extraData.length - usedExtra) {
+        return structureDamaged("BDF", "record " + (p / 24 + 1) + " asks for more data than its section holds");
+      }
+      usedDiff += diffLen;
+      usedExtra += extraLen;
+    }
+    return { ok: true, format: "BDF" };
+  }
+
+  /**
+   * RUP (NINJA 2): walks the command stream the way the library does and requires every variable-length number and every
+   * length it announces to fit in the file. The library's number reader uses 32-bit shifts, so more than four bytes
+   * (or a top bit set) can only mean damage.
+   */
+  function preflightRup(u8) {
+    var len = u8.length;
+    var pos = 0x800;
+    var bad = null;
+
+    function fail(detail) {
+      if (!bad) bad = structureDamaged("RUP", detail);
+      return null;
+    }
+    function vlv() {
+      if (pos >= len) return fail("it ends in the middle of a number");
+      var n = u8[pos++];
+      if (n > 4 || pos + n > len) return fail("it contains a number that doesn't fit");
+      var value = 0;
+      for (var i = 0; i < n; i++) value += u8[pos++] << (i * 8);
+      if (value < 0) return fail("it contains an impossible length");
+      return value;
+    }
+    function skip(count, what) {
+      if (count > len - pos) return fail(what + " is longer than the rest of the file");
+      pos += count;
+      return count;
+    }
+
+    var fileOpen = false;
+    while (pos < len) {
+      var command = u8[pos++];
+      if (command === 0x00) break;
+      if (command === 0x01) {
+        var nameLength = vlv();
+        if (nameLength === null || skip(nameLength, "a file name") === null) return bad;
+        if (skip(1, "a ROM type") === null) return bad;
+        var sourceSize = vlv();
+        var targetSize = vlv();
+        if (sourceSize === null || targetSize === null) return bad;
+        if (skip(32, "its checksum block") === null) return bad;
+        if (sourceSize !== targetSize) {
+          if (pos >= len) return structureDamaged("RUP", "it ends in the middle of a file entry");
+          var mode = u8[pos++];
+          if (mode !== 0x4d && mode !== 0x41) return structureDamaged("RUP", "a file entry has an invalid overflow mode");
+          var overflow = vlv();
+          if (overflow === null || skip(overflow, "overflow data") === null) return bad;
+        }
+        fileOpen = true;
+      } else if (command === 0x02) {
+        if (!fileOpen) return structureDamaged("RUP", "it changes data before any file is opened");
+        var offset = vlv();
+        var xorLength = offset === null ? null : vlv();
+        if (xorLength === null || skip(xorLength, "a record") === null) return bad;
+      } else {
+        return structureDamaged("RUP", "it contains an unknown command");
+      }
+    }
+    return { ok: true, format: "RUP" };
+  }
+
+  /**
+   * Checks the inside of a patch before the (unsafe on damaged input) library parser sees it: record counts, offsets and
+   * declared lengths must fit the file. UPS/BPS keep their CRC-based check in PatchCompat.preflightPatch.
+   * @param {Uint8Array} u8
+   * @param {{bz2?:{decompress:function}}} [deps] bzip2 decoder from the vendored library (workers only)
+   * @returns {{ok:true, format:string|null} | {ok:false, code:string, format:string, message:string}}
+   */
+  function preflightPatchStructure(u8, deps) {
+    var format = detectPatchFormat(u8);
+    if (format === "PMSR") return preflightPmsr(u8);
+    if (format === "BDF") return preflightBdf(u8, deps);
+    if (format === "RUP") return preflightRup(u8);
+    return { ok: true, format: format };
+  }
+
   // ------------------------------------------------------------------ patch format knowledge
 
   var FORMAT_LABELS = {
@@ -554,10 +850,20 @@
     return typeof n === "number" && isFinite(n);
   }
 
+  /** A memory limit as people think of it: "64 MB". */
+  function limitLabel(bytes) {
+    var mb = bytes / MB;
+    return (mb === Math.floor(mb) ? String(mb) : mb.toFixed(1)) + " MB";
+  }
+
   var SNES_EXTENSIONS = { sfc: 1, smc: 1, swc: 1, fig: 1 };
 
-  /** Header-related findings that can be stated without guessing. */
-  function headerFindings(rom, patch, platform) {
+  /**
+   * Header-related findings that can be stated without guessing.
+   * `compared` says whether this patch's own data was really compared with the ROM; when it wasn't, no finding
+   * may suggest that the header was part of a check.
+   */
+  function headerFindings(rom, patch, platform, compared) {
     var findings = [];
     var snes = platform && platform.snes;
     var size = rom.size;
@@ -571,9 +877,12 @@
       findings.push({
         level: "info",
         title: "Your ROM has a " + rom.headerless.headerSize + "-byte " + rom.headerless.name + " header",
-        message:
-          "PatchMyROM recognises this header, sets it aside while checking and patching, and puts it back on the result. " +
-          "Compatibility was checked on the ROM without it, the same way the patcher does.",
+        message: compared
+          ? "PatchMyROM recognises this header, sets it aside while checking and patching, and puts it back on the result. " +
+            "The comparison with the patch was made on the ROM without it, the same way the patcher does."
+          : "PatchMyROM recognises this header and sets it aside when patching, then puts it back on the result. " +
+            "This patch stores nothing to compare, so no check was made on the ROM either with or without the header. " +
+            "Whether the patch was made for a ROM with the header or without it is something only the patch's author can tell you.",
       });
       return findings;
     }
@@ -646,6 +955,15 @@
     var platform = rom.platform || null;
     var label = formatLabel(patch.format);
     var kind = kindFor(patch);
+    var needsWholeRom = kind === "md5" || kind === "header" || kind === "blocks" || kind === "fixed";
+    // Was the patch's own data really compared with the ROM? (Decides what the header notes may say.)
+    var compared =
+      !patch.problem &&
+      !!patch.recognized &&
+      (kind === "checksum" || (needsWholeRom && !!validation && validation.skipped !== "too-large" && validation.ok !== null && validation.ok !== undefined));
+    // A patch whose magic says what it is but whose insides are broken is named for what it is, so the report doesn't
+    // call it "Unknown" in one place and "damaged BPS" in another.
+    var patchLabel = patch.problem ? (patch.format ? label + " (damaged or incomplete)" : "not readable") : label;
 
     var report = {
       state: "cannot-verify",
@@ -671,9 +989,9 @@
         platform.platform + (platform.confidence === "confirmed" ? " (confirmed from the file header)" : platform.confidence === "extension-only" ? " (from the file extension only)" : "")
       );
     }
-    ev("Patch", (patch.fileName || "patch") + " · " + label + (patch.title ? " · “" + patch.title + "”" : ""));
+    ev("Patch", (patch.fileName || "patch") + " · " + patchLabel + (patch.title ? " · “" + patch.title + "”" : ""), patch.problem ? "bad" : "info");
 
-    report.findings = headerFindings(rom, patch, platform);
+    report.findings = headerFindings(rom, patch, platform, compared);
     if (platform && platform.conflict) {
       report.findings.push({ level: "info", title: "File extension and header disagree", message: platform.notes[platform.notes.length - 1] });
     }
@@ -683,14 +1001,21 @@
       report.state = "cannot-verify";
       report.code = patch.problem.code || "patch-unreadable";
       report.level = "warning";
-      report.headline = "The patch file couldn't be checked";
+      var damagedKnown = patch.problem.code === "patch-corrupt" && !!patch.format;
+      report.headline = damagedKnown ? "The " + label + " patch is damaged or incomplete" : "The patch file couldn't be checked";
       report.summary = patch.problem.message;
       report.verification = "Nothing was compared: the patch itself isn't usable.";
-      report.steps = [
-        "Download the patch again from its original source and avoid editing or re-saving it.",
-        "Make sure the file really is a patch (.ips, .ups, .bps, .xdelta …) and not a zip, a readme or a web page saved with the wrong extension.",
-        "If it was inside a .zip or .rar archive, extract the patch first.",
-      ];
+      report.steps = damagedKnown
+        ? [
+            "Download the patch again from its original source and avoid editing or re-saving it.",
+            "If it came inside a .zip or .rar archive, extract it with a standard tool and don't transfer it as text.",
+            "If a fresh download behaves the same way, ask the patch's author for a new copy.",
+          ]
+        : [
+            "Download the patch again from its original source and avoid editing or re-saving it.",
+            "Make sure the file really is a patch (.ips, .ups, .bps, .xdelta …) and not a zip, a readme or a web page saved with the wrong extension.",
+            "If it was inside a .zip or .rar archive, extract the patch first.",
+          ];
       return report;
     }
 
@@ -760,35 +1085,40 @@
     }
 
     // ---- a format that needs the whole ROM in memory, and the ROM is bigger than we are willing to load
-    if ((kind === "md5" || kind === "header" || kind === "blocks" || kind === "fixed") && validation && validation.skipped === "too-large") {
+    if (needsWholeRom && validation && validation.skipped === "too-large") {
       report.state = "cannot-verify";
       report.level = "unknown";
       report.code = "rom-too-large-for-validation";
-      report.headline = "Cannot verify: this ROM is too large to check against a " + label + " patch in the browser";
+      report.headline = "Cannot verify: this ROM is too large to check against a " + label + " patch on this device";
       report.summary =
         label +
         " patches are validated by loading the whole ROM into memory at once. To keep your browser from running out of memory, PatchMyROM only does that for ROMs up to " +
-        showSize(validation.limit) +
+        limitLabel(validation.limit) +
+        " on this device" +
+        (validation.reason ? " (" + validation.reason + ")" : "") +
         ", and yours is " +
         showSize(rom.size) +
         ". Nothing is wrong with the patch or the ROM — they just can't be compared here.";
-      report.verification = "No comparison was made: the ROM exceeds the " + showSize(validation.limit) + " limit for " + label + " validation.";
-      ev("Size limit for " + label + " validation", showSize(validation.limit), "info");
+      report.verification = "No comparison was made: the ROM exceeds the " + limitLabel(validation.limit) + " limit for " + label + " validation on this device.";
+      ev("Size limit for " + label + " validation", limitLabel(validation.limit), "info");
       ev("Result", "Skipped to protect the browser from running out of memory", "info");
       report.steps = [
         "Check the exact base game, region and revision in the patch's readme, then compare your ROM's checksum with the one listed using the ROM Checksum Checker (it handles files of any size).",
         "Patching a ROM this large also needs a lot of memory. Use a desktop computer with other tabs closed, or the patch author's own tool.",
         "If you have a UPS, BPS or xdelta version of the same patch, use it: those can be checked and patched without this limit.",
       ];
+      if (validation.limit < WHOLE_ROM_LIMIT) {
+        report.steps.splice(2, 0, "A computer with more memory is allowed to check larger ROMs (up to " + limitLabel(WHOLE_ROM_LIMIT) + "), so try this check there if you need an answer.");
+      }
       return report;
     }
 
     // ---- formats whose own library check exists (RUP / APS / PMSR)
-    if ((kind === "md5" || kind === "header" || kind === "blocks" || kind === "fixed") && validation) {
+    if (needsWholeRom && validation) {
       var how = {
         md5: label + " stores an MD5 of the original ROM, which was compared with the MD5 of yours (the patching library's own check).",
-        header: label + " stores part of the original cartridge's header (its game ID and CRC), which was compared with yours. This does not cover the whole ROM.",
-        blocks: label + " stores the original file size and a CRC16 of every block it changes, which were compared with your ROM.",
+        header: label + " stores only the original cartridge's game ID and the checksums from its header. Those were compared with yours; they do not cover the whole ROM.",
+        blocks: label + " stores the original file size and a 16-bit checksum of each block it changes. Those were compared with your ROM; the parts of the ROM the patch doesn't touch were not.",
         fixed: label + " is made for exactly one known ROM, whose size and CRC32 were compared with yours.",
       };
       report.verification = how[kind];
@@ -804,15 +1134,35 @@
           "You don't need to patch this file again — it already is the result of this patch.",
           "To patch again, start from the original, unmodified ROM.",
         ];
+      } else if (validation.ok && (kind === "header" || kind === "blocks")) {
+        // Everything the patch stores matched, but what it stores covers only part of the ROM — so this is evidence,
+        // not proof, and it is reported as "cannot verify" with the partial match spelled out.
+        report.state = "cannot-verify";
+        report.level = "unknown";
+        report.code = "partial-match-" + kind;
+        report.headline = "Cannot fully verify: only part of this ROM could be compared";
+        report.summary =
+          kind === "header"
+            ? "The game ID and header checksums stored in this " +
+              label +
+              " patch match your ROM. That is encouraging, but those values describe only the start of the cartridge (an N64 header checksum covers the first megabyte of game code), so they cannot prove that the rest of the file is the one the patch was made for. A different revision or an already modified ROM can share the same header."
+            : "The file size and the 16-bit checksums of the blocks this " +
+              label +
+              " patch changes match your ROM. That is encouraging, but the rest of the ROM was not compared and a 16-bit checksum can match by chance, so it cannot prove this is the exact ROM the patch was made for.";
+        ev("Result", "Partial match only — not a check of the whole ROM", "info");
+        report.steps = [
+          "For a firm answer, compare your ROM's CRC32 or SHA-1 with the value published for the base ROM, using the ROM Checksum Checker.",
+          "If the patch is also offered as BPS or UPS, prefer that version: those formats verify the whole ROM before patching.",
+          "If the patch's readme names the same game, region and revision as your ROM, applying it is reasonable. Test the result from the start; crashes or garbled graphics point to the wrong base ROM.",
+        ];
+        var partialOrder = n64OrderStep(platform);
+        if (partialOrder) report.steps.push(partialOrder);
       } else if (validation.ok) {
         report.state = "compatible";
         report.level = "ok";
         report.code = "rom-compatible-" + kind;
         report.headline = "Compatible: this is the ROM the patch was made for";
-        report.summary =
-          kind === "header"
-            ? "The cartridge header of your ROM matches the one this patch was made for. Because " + label + " only records the header, this is a strong but not a whole-file check."
-            : "Your ROM matches the original this patch was made for.";
+        report.summary = "Your ROM matches the original this patch was made for.";
         ev("Result", "Validation data matches", "ok");
         report.steps = [
           "Open the PatchMyROM patcher and apply the patch to this same file; it runs this check again before patching.",
@@ -892,7 +1242,20 @@
     if (rom && rom.platform && rom.platform.family === "snes") {
       steps.push("For SNES, check whether the patch expects a ROM with or without the 512-byte copier header; the readme normally says.");
     }
+    var order = n64OrderStep(rom && rom.platform);
+    if (order) steps.push(order);
     return steps;
+  }
+
+  /** N64 dumps come in three byte orders; nearly every patch is made for the big-endian one (.z64). */
+  function n64OrderStep(platform) {
+    if (!platform || platform.family !== "n64" || platform.confidence !== "confirmed") return null;
+    var swapped = (platform.notes || []).some(function (note) {
+      return /byte-swapped|little-endian/i.test(note);
+    });
+    return swapped
+      ? "Your N64 dump is not in the big-endian (.z64) byte order that nearly all patches are made for. Convert it to .z64 with a byte-order tool, then check it again — the checksum of a converted copy is different from this one."
+      : null;
   }
 
   function mismatchSteps(rom, patch, platform) {
@@ -907,6 +1270,8 @@
     if (platform && platform.family === "snes") {
       steps.push("For SNES, check whether the patch expects the ROM with or without its 512-byte copier header.");
     }
+    var order = n64OrderStep(platform);
+    if (order) steps.push(order);
     return steps;
   }
 
@@ -936,6 +1301,13 @@
   return {
     ALGORITHMS: ALGORITHMS,
     WHOLE_ROM_LIMIT: WHOLE_ROM_LIMIT,
+    DEFAULT_WHOLE_ROM_LIMIT: DEFAULT_WHOLE_ROM_LIMIT,
+    pickWholeRomLimit: pickWholeRomLimit,
+    deviceEnvironmentFrom: deviceEnvironmentFrom,
+    stageBudgetMs: stageBudgetMs,
+    progressBucket: progressBucket,
+    detectPatchFormat: detectPatchFormat,
+    preflightPatchStructure: preflightPatchStructure,
     HEAD_BYTES: HEAD_BYTES,
     EXTRA_PROBES: EXTRA_PROBES,
     EXTENSION_PLATFORM: EXTENSION_PLATFORM,

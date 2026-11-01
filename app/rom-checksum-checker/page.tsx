@@ -60,7 +60,7 @@ const faqItems = [
   {
     question: "Is my ROM uploaded anywhere?",
     answer:
-      "No. The file is read inside your browser by a background worker, and the checksums are calculated there. Nothing is sent to PatchMyROM or any other server, so it also works for very large files and offline once the page has loaded.",
+      "No. The file is read inside your browser by a background worker, and the checksums are calculated there. Nothing is sent to PatchMyROM or any other server, and files of any size are read in small pieces. The page and its worker script are downloaded from PatchMyROM like any website, so this is not an offline tool; only your file stays on your device.",
   },
   {
     question: "Which checksum should I compare?",

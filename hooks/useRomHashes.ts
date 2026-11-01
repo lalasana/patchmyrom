@@ -1,83 +1,43 @@
 "use client";
 
-import { useCallback, useEffect, useRef, useState } from "react";
+import { useCallback } from "react";
 import { HASH_WORKER_URL } from "@/lib/worker-urls";
 import type { HashResult } from "@/lib/rom-toolkit";
+import type { Classified } from "@/lib/worker-session";
+import { useWorkerJob } from "@/hooks/useWorkerJob";
 
 export type HashStatus = "idle" | "hashing" | "done" | "error";
+
+type HashProgress = { loaded: number; total: number };
 
 type HashMessage =
   | { type: "hash-progress"; requestId: string; loaded: number; total: number }
   | { type: "hash-result"; requestId: string; data: HashResult }
-  | { type: "error"; requestId: string; message: string };
+  | { type: "error"; requestId: string; message: string; code?: string };
 
-let counter = 0;
+const OPTIONS = {
+  createWorker: () => new Worker(HASH_WORKER_URL),
+  classify(raw: unknown): Classified<HashProgress, HashResult> {
+    const message = raw as HashMessage;
+    if (message.type === "hash-progress") return { type: "progress", merge: () => ({ loaded: message.loaded, total: message.total }) };
+    if (message.type === "hash-result") return { type: "result", result: message.data };
+    if (message.type === "error") return { type: "error", message: message.message, code: message.code };
+    return { type: "ignore" };
+  },
+};
 
 /** Streams one file through the checksum worker. Selecting another file (or cancel/reset) discards the previous run. */
 export function useRomHashes() {
-  const workerRef = useRef<Worker | null>(null);
-  const activeId = useRef<string | null>(null);
-  const [status, setStatus] = useState<HashStatus>("idle");
-  const [progress, setProgress] = useState<{ loaded: number; total: number } | null>(null);
-  const [result, setResult] = useState<HashResult | null>(null);
-  const [error, setError] = useState<string | null>(null);
-
-  const stopWorker = useCallback(() => {
-    workerRef.current?.terminate();
-    workerRef.current = null;
-    activeId.current = null;
-  }, []);
-
-  useEffect(() => stopWorker, [stopWorker]);
-
-  const reset = useCallback(() => {
-    stopWorker();
-    setStatus("idle");
-    setProgress(null);
-    setResult(null);
-    setError(null);
-  }, [stopWorker]);
+  const job = useWorkerJob<HashProgress, HashResult>(OPTIONS);
+  const { start } = job;
 
   const hashFile = useCallback(
     (file: File) => {
-      stopWorker(); // a fresh worker per file: cancels any run in flight and frees its memory
-      const requestId = `hash-${++counter}-${Date.now()}`;
-      activeId.current = requestId;
-      setStatus("hashing");
-      setProgress({ loaded: 0, total: file.size });
-      setResult(null);
-      setError(null);
-
-      const worker = new Worker(HASH_WORKER_URL);
-      workerRef.current = worker;
-      worker.onmessage = (event: MessageEvent<HashMessage>) => {
-        const message = event.data;
-        if (message.requestId !== activeId.current) return;
-        if (message.type === "hash-progress") {
-          setProgress({ loaded: message.loaded, total: message.total });
-        } else if (message.type === "hash-result") {
-          setResult(message.data);
-          setStatus("done");
-          setProgress(null);
-          stopWorker();
-        } else if (message.type === "error") {
-          setError(message.message);
-          setStatus("error");
-          setProgress(null);
-          stopWorker();
-        }
-      };
-      worker.onerror = (event: ErrorEvent) => {
-        if (activeId.current !== requestId) return;
-        setError(event.message || "The checksum calculation failed unexpectedly.");
-        setStatus("error");
-        setProgress(null);
-        stopWorker();
-      };
-      worker.postMessage({ type: "hash-file", requestId, file });
+      start({ type: "hash-file", file }, { loaded: 0, total: file.size }); // a fresh worker per file frees the previous one's memory
     },
-    [stopWorker]
+    [start]
   );
 
-  return { status, progress, result, error, hashFile, cancel: reset, reset };
+  const status: HashStatus = job.status === "running" ? "hashing" : job.status;
+  return { status, progress: job.progress, result: job.result, error: job.error, hashFile, cancel: job.cancel, reset: job.cancel };
 }

@@ -5,7 +5,7 @@ import Link from "next/link";
 import FileDropZone from "@/components/tool/FileDropZone";
 import { Button } from "@/components/ui/Button";
 import { IconAlertTriangle, IconArrowRight, IconCartridge, IconShieldCheck } from "@/components/ui/icons";
-import { CopyButton, PlatformSummary, ProgressBar, ToolWindow } from "@/components/tools/ToolParts";
+import { CopyButton, ErrorNotice, PlatformSummary, ProgressBar, StatusAnnouncer, ToolWindow } from "@/components/tools/ToolParts";
 import { useRomHashes } from "@/hooks/useRomHashes";
 import { formatBytes } from "@/lib/format-bytes";
 import {
@@ -13,6 +13,7 @@ import {
   HASH_ORDER,
   compareChecksums,
   parseExpectedChecksums,
+  progressBucket,
   type HashAlgorithm,
   type RomHashes,
 } from "@/lib/rom-toolkit";
@@ -120,12 +121,22 @@ export default function RomChecksumTool() {
   const [file, setFile] = useState<File | null>(null);
   const [expectedText, setExpectedText] = useState("");
   const [uppercase, setUppercase] = useState(false);
+  const [cancelled, setCancelled] = useState(false);
 
   function handleFile(next: File | null) {
     setFile(next);
+    setCancelled(status === "hashing" && !next);
     if (next) hashFile(next);
     else reset();
   }
+
+  const announcement = cancelled
+    ? "Checksum calculation cancelled."
+    : status === "hashing" && progress
+      ? `Calculating checksums, ${progressBucket(progress.loaded, progress.total)} percent done.`
+      : status === "done" && result
+        ? `Checksums ready for ${result.fileName}.`
+        : "";
 
   const parsed = useMemo(() => (expectedText.trim() ? parseExpectedChecksums(expectedText) : null), [expectedText]);
   const comparison = useMemo(() => (result && parsed && parsed.ok ? compareChecksums(result.hashes, parsed.items) : null), [result, parsed]);
@@ -144,6 +155,7 @@ export default function RomChecksumTool() {
 
   return (
     <ToolWindow title="Check a ROM file">
+      <StatusAnnouncer message={announcement} />
       <FileDropZone
         label="ROM or game file"
         hint="Any ROM works — it is read on this device and never uploaded"
@@ -164,24 +176,10 @@ export default function RomChecksumTool() {
         </div>
       )}
 
-      {status === "error" && (
-        <div role="alert" className="flex items-start gap-3 rounded-xl border border-amber-400/40 bg-amber-500/10 px-4 py-3 text-sm text-amber-200">
-          <IconAlertTriangle className="mt-0.5 h-5 w-5 flex-none text-amber-300" />
-          <div className="flex flex-col gap-2">
-            <p>{error}</p>
-            {file && (
-              <div>
-                <Button type="button" variant="outline" className="min-h-9 px-3 py-1.5 text-xs" onClick={() => hashFile(file)}>
-                  Try again
-                </Button>
-              </div>
-            )}
-          </div>
-        </div>
-      )}
+      {status === "error" && error && <ErrorNotice error={error} onRetry={file ? () => hashFile(file) : undefined} />}
 
       {status === "done" && result && (
-        <div className="flex flex-col gap-5" aria-live="polite">
+        <div className="flex flex-col gap-5">
           <div className="grid gap-4 rounded-xl border border-border bg-background/40 p-4 sm:grid-cols-[1fr_auto] sm:items-start">
             <div className="flex min-w-0 flex-col gap-3">
               <div>

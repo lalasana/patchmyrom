@@ -253,6 +253,8 @@ describe("hash worker", () => {
     // ExHiROM-style header at 0x40FFC0 in a 6 MB file
     const rom = fx.randomBytes(0x600000, 31);
     const h = 0x40ffc0;
+    rom[h + 0x15] = 0x25; // map mode: ExHiROM
+    rom[h + 0x17] = 0x0c; // ROM size code: 4 MB
     rom[h + 0x1c] = 0x00;
     rom[h + 0x1d] = 0xff;
     rom[h + 0x1e] = 0xff;
@@ -481,14 +483,21 @@ describe("compatibility worker: formats validated by the patching library itself
     assert.equal(r.data.report.state, "cannot-verify");
   });
 
-  test("APS in N64 mode: the cartridge header it records is compared, and the report says this is not a whole-file check", async () => {
+  test("APS in N64 mode: a matching header is only PARTIAL evidence (Cannot Verify), a different one is a real Mismatch", async () => {
     const original = roms.makeN64("z64", 0x100000, 64);
     const modified = fx.applyEdits(original, [{ offset: 0x2000, bytes: [1, 2, 3, 4] }]);
     const aps = buildWithLibrary(createWorker("compat-worker.js"), "aps", original, modified);
     const ok = await check(original, aps, "hack.aps");
     assert.equal(ok.data.patch.noValidation, false);
-    assert.equal(ok.data.report.state, "compatible");
-    assert.match(ok.data.report.verification, /does not cover the whole ROM/);
+    assert.equal(ok.data.report.state, "cannot-verify");
+    assert.equal(ok.data.report.code, "partial-match-header");
+    assert.doesNotMatch(ok.data.report.headline, /^Compatible/);
+    assert.match(ok.data.report.headline, /Cannot fully verify/);
+    assert.match(ok.data.report.summary, /first megabyte/);
+    assert.match(ok.data.report.summary, /cannot prove/);
+    assert.match(ok.data.report.verification, /do not cover the whole ROM/);
+    assert.ok(ok.data.report.evidence.some((e) => /Partial match only/.test(e.value)), "the evidence list says the match is partial");
+    assert.match(ok.data.report.steps.join(" "), /ROM Checksum Checker/);
     const bad = await check(roms.makeN64("z64", 0x100000, 65), aps, "hack.aps");
     assert.equal(bad.data.report.state, "mismatch");
   });
@@ -521,13 +530,16 @@ describe("compatibility worker: APS (GBA) block checks", () => {
     return Uint8Array.from(vm.runInContext(code, ctx));
   }
 
-  test("original ROM is Compatible; a ROM with different contents is a Mismatch", async () => {
+  test("original ROM is only a PARTIAL match (Cannot Verify); a ROM with different contents is a Mismatch", async () => {
     const modified = fx.applyEdits(ORIGINAL, [{ offset: 0x400, bytes: [1, 2, 3, 4] }]);
     const aps = buildApsGba(ORIGINAL, modified);
     const ok = await check(ORIGINAL, aps);
     assert.equal(ok.data.patch.format, "APSGBA");
-    assert.equal(ok.data.report.state, "compatible");
-    assert.match(ok.data.report.verification, /CRC16 of every block/);
+    assert.equal(ok.data.report.state, "cannot-verify");
+    assert.equal(ok.data.report.code, "partial-match-blocks");
+    assert.doesNotMatch(ok.data.report.headline, /^Compatible/);
+    assert.match(ok.data.report.summary, /rest of the ROM was not compared/);
+    assert.match(ok.data.report.verification, /16-bit checksum of each block/);
     const bad = await check(roms.makeGba(0x20000, 67), aps);
     assert.equal(bad.data.report.state, "mismatch");
     const wrongSize = await check(roms.makeGba(0x10000, 66), aps);

@@ -1,85 +1,61 @@
 "use client";
 
-import { useCallback, useEffect, useRef, useState } from "react";
+import { useCallback } from "react";
 import { COMPAT_WORKER_URL } from "@/lib/worker-urls";
-import type { CompatResult } from "@/lib/rom-toolkit";
+import { pickWholeRomLimit, readDeviceEnvironment, type CompatResult } from "@/lib/rom-toolkit";
+import type { Classified } from "@/lib/worker-session";
+import { useWorkerJob } from "@/hooks/useWorkerJob";
 
 export type CompatStatus = "idle" | "checking" | "done" | "error";
 
 type Lane = "rom" | "patch";
+type CompatProgress = Partial<Record<Lane, { loaded: number; total: number }>>;
 
 type CompatMessage =
   | { type: "compat-progress"; requestId: string; lane: Lane; loaded: number; total: number }
+  | { type: "compat-stage"; requestId: string; budgetMs: number }
   | { type: "compat-result"; requestId: string; data: CompatResult }
-  | { type: "error"; requestId: string; message: string };
+  | { type: "error"; requestId: string; message: string; code?: string };
 
-let counter = 0;
+const OPTIONS = {
+  createWorker: () => new Worker(COMPAT_WORKER_URL),
+  classify(raw: unknown): Classified<CompatProgress, CompatResult> {
+    const message = raw as CompatMessage;
+    if (message.type === "compat-progress") {
+      return { type: "progress", merge: (previous) => ({ ...previous, [message.lane]: { loaded: message.loaded, total: message.total } }) };
+    }
+    if (message.type === "compat-stage") return { type: "stage", budgetMs: message.budgetMs };
+    if (message.type === "compat-result") return { type: "result", result: message.data };
+    if (message.type === "error") return { type: "error", message: message.message, code: message.code };
+    return { type: "ignore" };
+  },
+};
 
-/** Runs one ROM + patch compatibility check in the compat worker; starting a new one (or reset) discards the previous. */
+/**
+ * Runs one ROM + patch compatibility check in the compat worker. Starting a new one, cancel() or leaving the page
+ * discards the previous run; a worker that stops responding is terminated from the main thread (see worker-session).
+ */
 export function useCompatCheck() {
-  const workerRef = useRef<Worker | null>(null);
-  const activeId = useRef<string | null>(null);
-  const [status, setStatus] = useState<CompatStatus>("idle");
-  const [progress, setProgress] = useState<Partial<Record<Lane, { loaded: number; total: number }>>>({});
-  const [result, setResult] = useState<CompatResult | null>(null);
-  const [error, setError] = useState<string | null>(null);
-
-  const stopWorker = useCallback(() => {
-    workerRef.current?.terminate();
-    workerRef.current = null;
-    activeId.current = null;
-  }, []);
-
-  useEffect(() => stopWorker, [stopWorker]);
-
-  const reset = useCallback(() => {
-    stopWorker();
-    setStatus("idle");
-    setProgress({});
-    setResult(null);
-    setError(null);
-  }, [stopWorker]);
+  const job = useWorkerJob<CompatProgress, CompatResult>(OPTIONS);
+  const { start } = job;
 
   const check = useCallback(
     (rom: File, patch: File) => {
-      stopWorker();
-      const requestId = `compat-${++counter}-${Date.now()}`;
-      activeId.current = requestId;
-      setStatus("checking");
-      setProgress({});
-      setResult(null);
-      setError(null);
-
-      const worker = new Worker(COMPAT_WORKER_URL);
-      workerRef.current = worker;
-      worker.onmessage = (event: MessageEvent<CompatMessage>) => {
-        const message = event.data;
-        if (message.requestId !== activeId.current) return;
-        if (message.type === "compat-progress") {
-          setProgress((prev) => ({ ...prev, [message.lane]: { loaded: message.loaded, total: message.total } }));
-        } else if (message.type === "compat-result") {
-          setResult(message.data);
-          setStatus("done");
-          setProgress({});
-          stopWorker();
-        } else if (message.type === "error") {
-          setError(message.message);
-          setStatus("error");
-          setProgress({});
-          stopWorker();
-        }
-      };
-      worker.onerror = (event: ErrorEvent) => {
-        if (activeId.current !== requestId) return;
-        setError(event.message || "The compatibility check failed unexpectedly.");
-        setStatus("error");
-        setProgress({});
-        stopWorker();
-      };
-      worker.postMessage({ type: "check-compat", requestId, rom, patch });
+      const limit = pickWholeRomLimit(readDeviceEnvironment());
+      const limits = { wholeRomBytes: limit.bytes, reason: limit.reason };
+      start({ type: "check-compat", rom, patch, limits }, {});
     },
-    [stopWorker]
+    [start]
   );
 
-  return { status, progress, result, error, check, reset };
+  const status: CompatStatus = job.status === "running" ? "checking" : job.status;
+  return {
+    status,
+    progress: job.progress ?? {},
+    result: job.result,
+    error: job.error,
+    check,
+    cancel: job.cancel,
+    reset: job.cancel,
+  };
 }

@@ -28,8 +28,8 @@ const outcomes = [
     label: "Compatible",
     art: "shield" as const,
     accent: "green" as const,
-    title: "A stored checksum matched",
-    body: "The patch carries data about the ROM it was made for (a CRC32, an MD5 or a cartridge ID) and your ROM matches it. You can patch with confidence. The checker names exactly what was compared, because for a few formats that is only part of the file.",
+    title: "A stored checksum of the whole ROM matched",
+    body: "The patch carries a checksum of the whole ROM it was made for (a CRC32 or an MD5, or for PMSR a fixed known ROM) and your ROM matches it. You can patch with confidence. The checker names exactly what was compared.",
   },
   {
     label: "Mismatch",
@@ -43,7 +43,7 @@ const outcomes = [
     art: "unsupported" as const,
     accent: "purple" as const,
     title: "There is nothing to compare",
-    body: "IPS, xdelta, PPF and BDF patches do not record which ROM they were made for. Nobody can prove a match in advance, so the checker never says “compatible” for them. It gives you facts and the steps that do help.",
+    body: "IPS, xdelta, PPF and BDF patches do not record which ROM they were made for, and APS patches record only part of it. Nobody can prove a full match in advance, so the checker never says “compatible” for them. For APS it tells you what matched and what that does not cover, and gives you the steps that do help.",
   },
 ];
 
@@ -51,8 +51,8 @@ const formats = [
   { name: "UPS", stores: "CRC32 and size of the original and the result", result: "Compatible or Mismatch" },
   { name: "BPS", stores: "CRC32 and size of the original and the result", result: "Compatible or Mismatch" },
   { name: "RUP", stores: "MD5 of the original and the result", result: "Compatible or Mismatch (the patching library's own check)" },
-  { name: "APS (N64)", stores: "The cartridge ID and CRC from the header only", result: "Compatible or Mismatch, stated as a header-only check" },
-  { name: "APS (GBA)", stores: "File size and a CRC16 of every changed block", result: "Compatible or Mismatch" },
+  { name: "APS (N64)", stores: "The cartridge ID and the checksums from the header only", result: "Mismatch, or Cannot verify with a partial match explained (never Compatible)" },
+  { name: "APS (GBA)", stores: "File size and a 16-bit checksum of every changed block", result: "Mismatch, or Cannot verify with a partial match explained (never Compatible)" },
   { name: "PMSR", stores: "Made for exactly one known ROM", result: "Compatible or Mismatch" },
   { name: "IPS", stores: "Nothing about the ROM", result: "Cannot verify" },
   { name: "xdelta", stores: "Nothing about the ROM", result: "Cannot verify" },
@@ -68,7 +68,7 @@ const faqItems = [
   {
     question: "Does “Cannot verify” mean the patch is broken?",
     answer:
-      "No. It means the format has nothing to check against. The patch may be perfectly fine. A damaged or unreadable patch is reported separately, with its own explanation.",
+      "No. It means the format has nothing to check against, or only part of the ROM (APS patches). The patch may be perfectly fine. A damaged or unreadable patch is reported separately, with its own explanation.",
   },
   {
     question: "My ROM looks right but it says Mismatch. Why?",
@@ -83,7 +83,7 @@ const faqItems = [
   {
     question: "Why can't some very large ROMs be checked against RUP, APS or PMSR patches?",
     answer:
-      "Those three formats are validated by the patching library, which needs the whole ROM in memory at once. To keep your browser from running out of memory, the checker does that only for ROMs up to 256 MB and otherwise says Cannot Verify and explains why. UPS, BPS, IPS and xdelta checks read the ROM in small pieces and have no such limit.",
+      "Those three formats are validated by the patching library, which needs the whole ROM in memory at once. To keep your browser from running out of memory, the checker does that only for ROMs up to a size that depends on your device (256 MB on a desktop that reports 8 GB or more, 128 MB when the browser doesn't report its memory, 64 MB on phones and tablets, 32 MB on devices with 2 GB or less) and otherwise says Cannot Verify and explains why. UPS, BPS, IPS and xdelta checks read the ROM in small pieces and have no such limit.",
   },
   {
     question: "Does the checker change or upload my files?",
@@ -113,7 +113,7 @@ export default function PatchCompatibilityCheckerPage() {
     offers: { "@type": "Offer", price: "0", priceCurrency: "USD" },
     featureList: [
       "Compatible, Mismatch and Cannot Verify results with the reason for each",
-      "Verifies UPS, BPS, RUP, APS and PMSR patches against the data they store",
+      "Verifies UPS, BPS, RUP and PMSR patches against the checksums they store, and reports APS matches as partial evidence only",
       "Never claims compatibility for formats without checksums, such as IPS and xdelta",
       "Detects SNES copier headers and explains header-related mismatches",
       "Troubleshooting steps and a copyable report",
@@ -184,7 +184,7 @@ export default function PatchCompatibilityCheckerPage() {
           </table>
         </div>
         <p className="text-xs text-muted">
-          Memory note: RUP, APS and PMSR checks load the whole ROM into memory, so they are limited to ROMs of up to 256 MB; larger files are reported as Cannot Verify with an explanation. UPS, BPS, IPS and xdelta checks read the ROM in small pieces and are not limited.
+          Memory note: RUP, APS and PMSR checks load the whole ROM into memory, so they are limited to ROMs of up to 256 MB on a desktop reporting 8 GB or more, 128 MB when the browser does not report its memory, 64 MB on phones and tablets and 32 MB on devices with 2 GB or less; larger files are reported as Cannot Verify with an explanation. UPS, BPS, IPS and xdelta checks read the ROM in small pieces and are not limited.
         </p>
       </section>
 

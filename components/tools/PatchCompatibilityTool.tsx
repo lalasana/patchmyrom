@@ -5,9 +5,9 @@ import Link from "next/link";
 import FileDropZone from "@/components/tool/FileDropZone";
 import { Button } from "@/components/ui/Button";
 import { IconAlertTriangle, IconArrowRight, IconBolt, IconCartridge, IconInfo, IconPatchFile, IconShieldCheck } from "@/components/ui/icons";
-import { CopyButton, PlatformSummary, ProgressBar, StatusIcon, ToolWindow } from "@/components/tools/ToolParts";
+import { CopyButton, ErrorNotice, PlatformSummary, ProgressBar, StatusAnnouncer, StatusIcon, ToolWindow } from "@/components/tools/ToolParts";
 import { useCompatCheck } from "@/hooks/useCompatCheck";
-import { compatReportToPlainText, type CompatState } from "@/lib/rom-toolkit";
+import { compatReportToPlainText, progressBucket, type CompatState } from "@/lib/rom-toolkit";
 
 const STATE_STYLES: Record<CompatState, { badge: string; box: string; title: string; icon: typeof IconShieldCheck; label: string }> = {
   compatible: {
@@ -40,9 +40,9 @@ function Legend() {
         <li key={state} className="flex items-start gap-2 rounded-lg border border-border/70 bg-background/40 px-3 py-2">
           <span className={`mt-0.5 flex-none rounded-full border px-2 py-0.5 text-[11px] font-bold ${STATE_STYLES[state].badge}`}>{STATE_STYLES[state].label}</span>
           <span>
-            {state === "compatible" && "A checksum stored in the patch was compared with your ROM and matched."}
+            {state === "compatible" && "A checksum of the whole ROM, stored in the patch, was compared with yours and matched."}
             {state === "mismatch" && "The patch's own data shows this is not the ROM it was made for."}
-            {state === "cannot-verify" && "The patch format stores nothing to compare. Nobody can prove a match in advance."}
+            {state === "cannot-verify" && "The patch stores nothing to compare, or only part of the ROM. A full match can't be proven."}
           </span>
         </li>
       ))}
@@ -51,17 +51,29 @@ function Legend() {
 }
 
 export default function PatchCompatibilityTool() {
-  const { status, progress, result, error, check, reset } = useCompatCheck();
+  const { status, progress, result, error, check, cancel, reset } = useCompatCheck();
   const [romFile, setRomFile] = useState<File | null>(null);
   const [patchFile, setPatchFile] = useState<File | null>(null);
+  const [cancelled, setCancelled] = useState(false);
 
   function pickRom(file: File | null) {
     setRomFile(file);
+    setCancelled(false);
     reset();
   }
   function pickPatch(file: File | null) {
     setPatchFile(file);
+    setCancelled(false);
     reset();
+  }
+  function startCheck() {
+    if (!romFile || !patchFile) return;
+    setCancelled(false);
+    check(romFile, patchFile);
+  }
+  function cancelCheck() {
+    setCancelled(true);
+    cancel();
   }
 
   const busy = status === "checking";
@@ -72,9 +84,19 @@ export default function PatchCompatibilityTool() {
     { key: "patch" as const, label: "Reading patch…" },
     { key: "rom" as const, label: "Checking ROM…" },
   ];
+  // The ROM is the long step; before it starts, report on the patch.
+  const activeLane = progress.rom ?? progress.patch;
+  const announcement = cancelled
+    ? "Check cancelled."
+    : busy
+      ? `Checking, ${activeLane ? progressBucket(activeLane.loaded, activeLane.total) : 0} percent done.`
+      : status === "done" && report && style
+        ? `Result: ${style.label}. ${report.headline}`
+        : "";
 
   return (
     <ToolWindow title="Check a ROM against a patch">
+      <StatusAnnouncer message={announcement} />
       <Legend />
 
       <div className="relative grid gap-5 sm:grid-cols-2 sm:gap-8">
@@ -102,7 +124,7 @@ export default function PatchCompatibilityTool() {
         />
       </div>
 
-      <Button type="button" className="min-h-14 text-base" fullWidth disabled={!romFile || !patchFile || busy} onClick={() => romFile && patchFile && check(romFile, patchFile)}>
+      <Button type="button" className="min-h-14 text-base" fullWidth disabled={!romFile || !patchFile || busy} onClick={startCheck}>
         <IconBolt className="h-5 w-5" />
         {busy ? "Checking…" : "Check Compatibility"}
       </Button>
@@ -113,18 +135,18 @@ export default function PatchCompatibilityTool() {
             const lane = progress[key];
             return lane ? <ProgressBar key={key} label={label} loaded={lane.loaded} total={lane.total} /> : null;
           })}
+          <div>
+            <Button type="button" variant="outline" className="min-h-10 px-4 py-2 text-xs" onClick={cancelCheck}>
+              Cancel
+            </Button>
+          </div>
         </div>
       )}
 
-      {status === "error" && (
-        <div role="alert" className="flex items-start gap-3 rounded-xl border border-amber-400/40 bg-amber-500/10 px-4 py-3 text-sm text-amber-200">
-          <IconAlertTriangle className="mt-0.5 h-5 w-5 flex-none text-amber-300" />
-          <p className="min-w-0 break-words">{error}</p>
-        </div>
-      )}
+      {status === "error" && error && <ErrorNotice error={error} onRetry={romFile && patchFile ? startCheck : undefined} />}
 
       {status === "done" && result && report && style && StateIcon && (
-        <div className="flex flex-col gap-5" aria-live="polite">
+        <div className="flex flex-col gap-5">
           <section className={`flex flex-col gap-3 rounded-2xl border-2 p-5 sm:p-6 ${style.box}`}>
             <div className="flex flex-wrap items-center gap-3">
               <span className={`inline-flex items-center gap-1.5 rounded-full border px-3 py-1 text-sm font-bold ${style.badge}`}>

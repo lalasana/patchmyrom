@@ -21,7 +21,7 @@ const sections: LlmsSection[] = [
     heading: "ROM toolkit",
     entries: [
       { path: "/rom-checksum-checker", description: "Calculates a ROM's CRC32, MD5, SHA-1 and SHA-256 in the browser, compares them with a pasted checksum and identifies the console from the file header (with a confidence level). Large files are processed in chunks; nothing is uploaded." },
-      { path: "/patch-compatibility-checker", description: "Checks whether a ROM matches a patch. Reports Compatible, Mismatch or Cannot Verify with the reason: UPS, BPS, RUP, APS and PMSR patches can be verified; IPS, xdelta, PPF and BDF patches store no ROM checksum and are never reported as compatible. Explains SNES copier-header issues." },
+      { path: "/patch-compatibility-checker", description: "Checks whether a ROM matches a patch. Reports Compatible, Mismatch or Cannot Verify with the reason: UPS, BPS, RUP and PMSR patches can be verified against the checksum they store; APS patches store only part of the ROM, so a match is reported as partial evidence (Cannot Verify); IPS, xdelta, PPF and BDF patches store no ROM checksum and are never reported as compatible. Explains SNES copier-header issues." },
     ],
   },
   {

@@ -80,12 +80,20 @@ export type CompatResult = {
   report: CompatReport;
 };
 
+/** What the browser tells us about the device; both parts are optional (Firefox and Safari don't report memory). */
+export type DeviceEnvironment = { deviceMemory?: number | null; mobile?: boolean };
+
+export type WholeRomLimit = { bytes: number; tier: string; reason: string };
+
 type RomToolkitApi = {
   ALGORITHMS: Record<HashAlgorithm, { label: string; length: number }>;
   parseExpectedChecksums(text: string): ParsedChecksums;
   compareChecksums(actual: RomHashes, items: ExpectedChecksum[]): ChecksumComparison;
   formatLabel(name: string | null): string;
   reportToPlainText(report: CompatReport): string;
+  pickWholeRomLimit(env?: DeviceEnvironment): WholeRomLimit;
+  deviceEnvironmentFrom(nav: unknown): DeviceEnvironment;
+  progressBucket(loaded: number, total: number): number;
 };
 
 const api = impl as unknown as RomToolkitApi;
@@ -95,5 +103,12 @@ export const parseExpectedChecksums = api.parseExpectedChecksums;
 export const compareChecksums = api.compareChecksums;
 export const compatFormatLabel = api.formatLabel;
 export const compatReportToPlainText = api.reportToPlainText;
+export const pickWholeRomLimit = api.pickWholeRomLimit;
+export const progressBucket = api.progressBucket;
+
+/** Reads the device facts the whole-ROM limit depends on. Browser only; returns {} where there is no navigator. */
+export function readDeviceEnvironment(): DeviceEnvironment {
+  return typeof navigator === "undefined" ? {} : api.deviceEnvironmentFrom(navigator);
+}
 
 export const HASH_ORDER: HashAlgorithm[] = ["crc32", "md5", "sha1", "sha256"];

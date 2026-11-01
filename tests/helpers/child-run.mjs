@@ -12,7 +12,7 @@ const b64 = (u8) => Buffer.from(u8).toString("base64");
 /** @returns {{ timedOut: boolean, result: object|null, stderr: string }} */
 export function runInChild(workerFile, message, { timeoutMs = 15000 } = {}) {
   const payload = { workerFile, message: { ...message } };
-  for (const key of ["romFile", "patchFile", "file"]) {
+  for (const key of ["romFile", "patchFile", "file", "rom", "patch"]) {
     if (message[key]) payload.message[key] = { name: message[key].name, bytes: b64(message[key].__bytes) };
   }
   const res = spawnSync(process.execPath, [CHILD], {

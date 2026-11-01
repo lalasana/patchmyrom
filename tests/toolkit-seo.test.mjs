@@ -129,6 +129,26 @@ describe("tool pages: content and structured data", () => {
   test("the compatibility page states, in its own copy, that IPS is never reported as compatible", () => {
     assert.match(read("app/patch-compatibility-checker/page.tsx"), /never label an IPS patch Compatible/);
   });
+
+  test("no page copy, FAQ answer or llms.txt claims the tools work offline", () => {
+    for (const rel of ["app/rom-checksum-checker/page.tsx", "app/patch-compatibility-checker/page.tsx", "app/llms.txt/route.ts"]) {
+      assert.doesNotMatch(read(rel), /works? (?:\w+ )*offline|and offline|offline once/i, rel);
+    }
+    assert.match(read("app/rom-checksum-checker/page.tsx"), /not an offline tool/);
+  });
+
+  test("APS is described as partial evidence everywhere (never 'Compatible or Mismatch'), and the memory limits are device-dependent", () => {
+    const page = read("app/patch-compatibility-checker/page.tsx");
+    assert.doesNotMatch(page, /APS[^\n]*Compatible or Mismatch/);
+    assert.match(page, /APS \(N64\)[^\n]*never Compatible/);
+    assert.match(page, /APS \(GBA\)[^\n]*never Compatible/);
+    assert.doesNotMatch(page, /Verifies UPS, BPS, RUP, APS and PMSR/);
+    assert.match(page, /32 MB on devices with 2 GB or less/);
+    assert.doesNotMatch(page, /limited to ROMs of up to 256 MB;/, "the memory note names the 256 MB ceiling only as the best case");
+    const llms = read("app/llms.txt/route.ts");
+    assert.doesNotMatch(llms, /UPS, BPS, RUP, APS and PMSR patches can be verified/);
+    assert.match(llms, /APS patches store only part of the ROM/);
+  });
 });
 
 describe("sitemap, llms.txt, links", () => {

@@ -12,7 +12,14 @@
  *   - VcdiffSecondary.inspect() for a structural check of xdelta patches.
  * The ROM is streamed through CRC32 in chunks; it is only loaded fully into memory for the few
  * patch formats whose validation needs random access to it (RUP, APS, PMSR), and then only up to
- * RomToolkit.WHOLE_ROM_LIMIT (256 MB); a bigger ROM gets an explanatory "cannot verify" instead.
+ * the limit the page passes in (RomToolkit.pickWholeRomLimit: 32–256 MB depending on the device;
+ * 64 MB when the page says nothing); a bigger ROM gets an explanatory "cannot verify" instead.
+ *
+ * A damaged patch can make the vendored parsers loop or allocate for as long as the file says, and a
+ * worker stuck in a synchronous loop can't time itself out. So the structure of PMSR, BDF and RUP
+ * patches is checked first (RomToolkit.preflightPatchStructure), and before every step that can't
+ * report progress the worker sends "compat-stage" with the time it needs, so the page can end it
+ * from the outside (terminate()) if that time runs out.
  */
 
 self.importScripts(
@@ -203,18 +210,38 @@ function runLibraryValidation(patchMeta, romScan) {
   return { kind: kind, ok: false };
 }
 
+/**
+ * Tells the page how long the next step that can't report progress may take, so the page's watchdog waits for
+ * that long instead of the default. If the step never ends, the page terminates this worker.
+ */
+function announceStage(requestId, bytes) {
+  self.postMessage({ type: "compat-stage", requestId: requestId, budgetMs: RomToolkit.stageBudgetMs(bytes) });
+}
+
 function check(requestId, romFile, patchFile, limits) {
-  var wholeRomLimit = limits && typeof limits.wholeRomBytes === "number" ? limits.wholeRomBytes : RomToolkit.WHOLE_ROM_LIMIT;
+  // The page chooses the limit for its device; it can lower the ceiling but never raise it.
+  var requested = limits && typeof limits.wholeRomBytes === "number" && limits.wholeRomBytes >= 0 ? limits.wholeRomBytes : RomToolkit.DEFAULT_WHOLE_ROM_LIMIT;
+  var wholeRomLimit = Math.min(requested, RomToolkit.WHOLE_ROM_LIMIT);
+  var limitReason = limits && typeof limits.reason === "string" ? limits.reason : null;
   var patchProblem = null;
   var patchMeta = { recognized: false };
   var patchBytes = null;
+  var patchFormatFromMagic = null;
 
   return readWhole(patchFile, "patch", requestId)
     .then(function (u8) {
       patchBytes = u8;
+      patchFormatFromMagic = RomToolkit.detectPatchFormat(u8);
+      announceStage(requestId, u8.length * 8); // reading the patch's own structure: nothing to report until it is done
       var preflight = PatchCompat.preflightPatch(u8);
       if (!preflight.ok) {
         patchProblem = { code: preflight.code, message: preflight.message };
+        return;
+      }
+      // Counts and lengths declared inside PMSR / BDF / RUP patches must fit the file before the library trusts them.
+      var structure = RomToolkit.preflightPatchStructure(u8, { bz2: typeof bz2 !== "undefined" ? bz2 : null });
+      if (!structure.ok) {
+        patchProblem = { code: structure.code, message: structure.message };
         return;
       }
       try {
@@ -238,9 +265,12 @@ function check(requestId, romFile, patchFile, limits) {
     .then(function (romScan) {
       var validation = null;
       if (!patchProblem && patchMeta.recognized) {
-        validation = romScan.tooLargeForValidation
-          ? { kind: RomToolkit.kindFor(patchMeta), ok: null, skipped: "too-large", limit: wholeRomLimit }
-          : runLibraryValidation(patchMeta, romScan);
+        if (romScan.tooLargeForValidation) {
+          validation = { kind: RomToolkit.kindFor(patchMeta), ok: null, skipped: "too-large", limit: wholeRomLimit, reason: limitReason };
+        } else {
+          if (romScan.whole) announceStage(requestId, romScan.size); // the library's whole-ROM check reports no progress
+          validation = runLibraryValidation(patchMeta, romScan);
+        }
       }
       var platform = RomToolkit.detectPlatform({ fileName: romFile.name, size: romScan.size, head: romScan.head, probes: romScan.probes });
 
@@ -249,7 +279,8 @@ function check(requestId, romFile, patchFile, limits) {
         fileName: patchFile.name,
         size: patchFile.size,
         recognized: !!patchMeta.recognized,
-        format: patchMeta.format || null,
+        // A patch that can't be read still says what it claims to be in its first bytes, so the report can name it.
+        format: patchMeta.format || (patchProblem ? patchFormatFromMagic : null),
         title: patchMeta.title || null,
         sourceSize: patchMeta.sourceSize === undefined ? null : patchMeta.sourceSize,
         targetSize: patchMeta.targetSize === undefined ? null : patchMeta.targetSize,

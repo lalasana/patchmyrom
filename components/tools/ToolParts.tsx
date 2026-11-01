@@ -1,9 +1,11 @@
 "use client";
 
 import { useEffect, useRef, useState, type ReactNode } from "react";
+import { Button } from "@/components/ui/Button";
 import { IconAlertTriangle, IconCopy, IconInfo, IconShieldCheck } from "@/components/ui/icons";
 import { formatBytes } from "@/lib/format-bytes";
 import type { PlatformInfo } from "@/lib/rom-toolkit";
+import type { SessionError } from "@/lib/worker-session";
 
 /** Window chrome shared by the toolkit tools (same look as the patcher). */
 export function ToolWindow({ title, children }: { title: string; children: ReactNode }) {
@@ -18,6 +20,48 @@ export function ToolWindow({ title, children }: { title: string; children: React
       <div className="flex flex-col gap-6 p-5 sm:p-7">
         <h2 className="text-2xl font-bold tracking-tight text-foreground">{title}</h2>
         {children}
+      </div>
+    </div>
+  );
+}
+
+/**
+ * One screen-reader announcement slot per tool. It is always in the page (a live region that is added together with
+ * its text is often not announced) and its text only changes when there is something new to say, so progress is read
+ * out at 25% steps and the result once, instead of the whole result being read again at every update.
+ */
+export function StatusAnnouncer({ message }: { message: string }) {
+  return (
+    <div role="status" aria-live="polite" aria-atomic="true" className="sr-only">
+      {message}
+    </div>
+  );
+}
+
+/**
+ * A failed job. When the likely fix is reloading the page (a worker file that no longer exists after an update, a blocked
+ * worker) the button for it is shown first, so the person isn't left retrying something that can't work.
+ */
+export function ErrorNotice({ error, onRetry }: { error: SessionError; onRetry?: () => void }) {
+  return (
+    <div role="alert" className="flex items-start gap-3 rounded-xl border border-amber-400/40 bg-amber-500/10 px-4 py-3 text-sm text-amber-200">
+      <IconAlertTriangle className="mt-0.5 h-5 w-5 flex-none text-amber-300" />
+      <div className="flex min-w-0 flex-col gap-2">
+        <p className="break-words">{error.message}</p>
+        {(error.suggestReload || onRetry) && (
+          <div className="flex flex-wrap gap-2">
+            {error.suggestReload && (
+              <Button type="button" variant="secondary" className="min-h-9 px-3 py-1.5 text-xs" onClick={() => window.location.reload()}>
+                Reload page
+              </Button>
+            )}
+            {onRetry && (
+              <Button type="button" variant="outline" className="min-h-9 px-3 py-1.5 text-xs" onClick={onRetry}>
+                Try again
+              </Button>
+            )}
+          </div>
+        )}
       </div>
     </div>
   );
