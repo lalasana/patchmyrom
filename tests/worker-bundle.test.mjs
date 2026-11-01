@@ -91,7 +91,9 @@ describe("worker bundle: names are bound to content", () => {
     for (const key of Object.keys(result.urls)) {
       const text = read(result, entryFile(result, key));
       const { urls } = parseImports(text, key);
-      assert.equal(urls.length, 15, "the dependency list must be unchanged in length");
+      // the patcher and analysis workers share 15 files; the ROM-toolkit workers list their own sets
+      const expected = { romPatcher: 15, analysis: 15, hash: 2, compat: 17 };
+      assert.equal(urls.length, expected[key], `the dependency list of ${key} must be unchanged in length`);
       for (const url of urls) {
         assert.ok(url.startsWith(BUNDLE_URL_PREFIX), `${url} is not versioned`);
         assert.ok(names(result).includes(url.slice(BUNDLE_URL_PREFIX.length)), `${url} was not emitted`);
@@ -114,14 +116,24 @@ describe("worker bundle: names are bound to content", () => {
     }
   });
 
-  test("both workers share one set of hashed dependencies (each file is downloaded once)", () => {
+  test("the patcher and analysis workers share one set of hashed dependencies (each file is downloaded once)", () => {
     const deps = (key) => parseImports(read(result, entryFile(result, key)), key).urls;
     assert.deepEqual(deps("romPatcher"), deps("analysis"));
-    assert.equal(names(result).length, 15 + 2);
+    // 15 shared files + stream-hash.js and rom-toolkit.js (ROM toolkit) + one file per entry worker (4)
+    assert.equal(names(result).length, 15 + 2 + 4);
+    // the ROM-toolkit workers reuse those same hashed files rather than carrying copies
+    const shared = new Set(deps("romPatcher"));
+    const compat = deps("compat").filter((u) => shared.has(u));
+    assert.equal(compat.length, 15, "the compatibility worker reuses every shared file instead of carrying its own copies");
   });
 
   test("the unversioned fallback points at the plain sources (used by `next dev`)", () => {
-    assert.deepEqual(unversionedWorkerUrls(), { romPatcher: "/workers/rom-patcher-worker.js", analysis: "/workers/analysis-worker.js" });
+    assert.deepEqual(unversionedWorkerUrls(), {
+      romPatcher: "/workers/rom-patcher-worker.js",
+      analysis: "/workers/analysis-worker.js",
+      hash: "/workers/hash-worker.js",
+      compat: "/workers/compat-worker.js",
+    });
   });
 });
 
@@ -143,7 +155,7 @@ describe("worker bundle: versioning behaviour", () => {
     for (const n of names(lf)) assert.equal(read(lf, n), read(crlf, n));
   });
 
-  test("changing one vendored decoder re-versions it AND both workers that pin it; nothing else", () => {
+  test("changing one vendored decoder re-versions it AND every worker that pins it; nothing else", () => {
     const root = copyProject();
     const before = build(root);
     edit(root, "vendor/rom-patcher-js/modules/RomPatcher.format.bps.js", (s) => s + "\n// changed\n");
@@ -151,12 +163,12 @@ describe("worker bundle: versioning behaviour", () => {
     const b = byBase(before);
     const a = byBase(after2);
     const changed = Object.keys(b).filter((k) => b[k] !== a[k]).sort();
-    assert.deepEqual(changed, ["RomPatcher.format.bps", "analysis-worker", "rom-patcher-worker"]);
+    assert.deepEqual(changed, ["RomPatcher.format.bps", "analysis-worker", "compat-worker", "rom-patcher-worker"]);
     assert.notEqual(before.urls.romPatcher, after2.urls.romPatcher);
     assert.notEqual(before.urls.analysis, after2.urls.analysis);
   });
 
-  test("changing the shared xdelta helper re-versions both workers (no worker can run a mixed set)", () => {
+  test("changing the shared xdelta helper re-versions every worker that uses it (no worker can run a mixed set)", () => {
     const root = copyProject();
     const before = build(root);
     edit(root, "workers/vcdiff-secondary.js", (s) => s + "\n// changed\n");
@@ -164,7 +176,7 @@ describe("worker bundle: versioning behaviour", () => {
     const b = byBase(before);
     const a = byBase(after2);
     const changed = Object.keys(b).filter((k) => b[k] !== a[k]).sort();
-    assert.deepEqual(changed, ["analysis-worker", "rom-patcher-worker", "vcdiff-secondary"]);
+    assert.deepEqual(changed, ["analysis-worker", "compat-worker", "rom-patcher-worker", "vcdiff-secondary"]);
   });
 
   test("changing only the analysis worker leaves the patch worker and every decoder URL unchanged (cache is kept)", () => {

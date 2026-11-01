@@ -230,6 +230,16 @@ export default function SnesRomPatcherPage() {
               title: "NES ROM Patcher",
               description: "IPS's other classic home platform, from the same hacking era.",
             },
+            {
+              href: "/rom-checksum-checker",
+              title: "ROM Checksum Checker",
+              description: "Get a ROM's CRC32, MD5, SHA-1 and SHA-256 and compare them with a published value.",
+            },
+            {
+              href: "/patch-compatibility-checker",
+              title: "ROM & Patch Compatibility Checker",
+              description: "Check whether a ROM matches a patch before you patch it.",
+            },
           ]}
         />
       </section>

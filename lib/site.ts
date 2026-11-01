@@ -52,6 +52,8 @@ export const footerLinks = {
     { href: "/", label: "ROM Patcher" },
     { href: "/pokemon-rom-patcher", label: "Pokemon ROM Patcher" },
     { href: "/patch-formats", label: "Patch Formats" },
+    { href: "/rom-checksum-checker", label: "ROM Checksum Checker" },
+    { href: "/patch-compatibility-checker", label: "Patch Compatibility Checker" },
   ],
   formats: patchFormatPages,
   consoles: consolePatcherPages,

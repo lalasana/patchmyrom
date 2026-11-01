@@ -27,7 +27,7 @@ export function fakeFile(bytes, name, type = "") {
   };
 }
 
-const TERMINAL_TYPES = new Set(["success", "error", "rom-result", "patch-result"]);
+const TERMINAL_TYPES = new Set(["success", "error", "rom-result", "patch-result", "hash-result", "compat-result"]);
 
 /**
  * Boots a worker script. Returns `run(message)`, which posts a message to the worker and

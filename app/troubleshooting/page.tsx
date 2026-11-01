@@ -123,6 +123,16 @@ export default function TroubleshootingPage() {
               title: "How to Patch Pokemon ROM Hacks",
               description: "A step-by-step guide for Pokemon ROM hack patching.",
             },
+            {
+              href: "/rom-checksum-checker",
+              title: "ROM Checksum Checker",
+              description: "Get a ROM's CRC32, MD5, SHA-1 and SHA-256 and compare them with a published value.",
+            },
+            {
+              href: "/patch-compatibility-checker",
+              title: "ROM & Patch Compatibility Checker",
+              description: "Check whether a ROM matches a patch before you patch it.",
+            },
           ]}
         />
       </section>

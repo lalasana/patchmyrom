@@ -228,6 +228,11 @@ export default function XdeltaPatcherPage() {
               title: "Troubleshooting",
               description: "Fix common ROM patching errors and mismatches.",
             },
+            {
+              href: "/patch-compatibility-checker",
+              title: "ROM & Patch Compatibility Checker",
+              description: "Check whether a ROM matches a patch before you patch it.",
+            },
           ]}
         />
       </section>

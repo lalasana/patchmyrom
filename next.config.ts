@@ -16,6 +16,8 @@ export default function nextConfig(phase: string): NextConfig {
     env: {
       NEXT_PUBLIC_ROM_PATCHER_WORKER_URL: workerUrls.romPatcher,
       NEXT_PUBLIC_ANALYSIS_WORKER_URL: workerUrls.analysis,
+      NEXT_PUBLIC_HASH_WORKER_URL: workerUrls.hash,
+      NEXT_PUBLIC_COMPAT_WORKER_URL: workerUrls.compat,
     },
   };
 }

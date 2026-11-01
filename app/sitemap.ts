@@ -19,6 +19,8 @@ const routes: RouteConfig[] = [
   { path: "/patch-formats", priority: 0.8, changeFrequency: "monthly", lastModified: "2026-07-02" },
   { path: "/how-to-patch-pokemon-rom-hacks", priority: 0.8, changeFrequency: "monthly", lastModified: "2026-07-03" },
   { path: "/troubleshooting", priority: 0.8, changeFrequency: "monthly", lastModified: "2026-07-03" },
+  { path: "/rom-checksum-checker", priority: 0.8, changeFrequency: "monthly", lastModified: "2026-11-01" },
+  { path: "/patch-compatibility-checker", priority: 0.8, changeFrequency: "monthly", lastModified: "2026-11-01" },
   { path: "/ips-patcher", priority: 0.7, changeFrequency: "monthly", lastModified: "2026-07-03" },
   { path: "/bps-patcher", priority: 0.7, changeFrequency: "monthly", lastModified: "2026-07-03" },
   { path: "/ups-patcher", priority: 0.7, changeFrequency: "monthly", lastModified: "2026-07-03" },

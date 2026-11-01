@@ -54,6 +54,16 @@ Cloudflare Pages serves unhashed static files with `max-age=14400, must-revalida
 - `public/_headers`: `/worker-bundle/*` is `immutable` for a year; the legacy unhashed `/workers/*` and `/vendor/*` stay published for tabs opened before this change but are `no-cache` (always revalidated). They can be deleted from the deploy once old tabs no longer matter.
 - Tests: `tests/worker-bundle.test.mjs` (hash/content binding, determinism, CRLF-independence, which URLs change when a file changes, refusal of unsafe input, and the generated workers patching BPS/UPS/IPS/xdelta-LZMA identically to the sources).
 
+## ROM toolkit (checksum checker, patch compatibility checker)
+
+Two browser tools that reuse the patcher's engine; nothing is uploaded.
+
+- **`/rom-checksum-checker`**: CRC32, MD5, SHA-1 and SHA-256 in one pass (`public/workers/stream-hash.js`, incremental hashers), compared with a pasted checksum, plus platform detection from the file's own header (`confirmed` / `extension-only` / `unknown`). `hash-worker.js` reads the file in 4 MB chunks, so memory stays flat for any size; only the first ~192 KB (and a few fixed SNES header locations) are kept for detection.
+- **`/patch-compatibility-checker`**: `Compatible` / `Mismatch` / `Cannot verify` for a ROM and a patch. UPS and BPS use the same classifier as the patcher (`patch-compat.js`); RUP, APS and PMSR use the patching library's own `validateSource()`; IPS, xdelta, PPF and BDF store nothing about the ROM and are **never** reported as compatible. SNES copier headers are recognised with the library's own rules (`isRomHeadered`) and explained, never guessed at.
+- **Shared core**: `public/workers/rom-toolkit.js` (pure functions; also loaded by the UI through `lib/rom-toolkit.ts` and by the Node tests). The two workers are entry workers of the hashed bundle (`scripts/worker-bundle.mjs`), so they are versioned like the patcher's.
+- **Memory**: ROM checksums and UPS/BPS/IPS/xdelta/PPF checks stream the ROM. RUP, APS and PMSR validation needs the whole ROM in memory (the library hashes it as one block or reads it at arbitrary offsets), so those checks are limited to ROMs of up to 256 MB (`RomToolkit.WHOLE_ROM_LIMIT`); a larger ROM gets `Cannot verify` with an explanation instead of an allocation failure.
+- Tests: `tests/rom-toolkit.test.mjs` (hashers against `node:crypto`, checksum parsing, platform detection on synthetic header fixtures, every verdict, SNES headers, memory limit, chunked reads) and `tests/toolkit-seo.test.mjs` (metadata, uniqueness, sitemap, links). Fixtures are generated (`tests/helpers/rom-fixtures.mjs`); no copyrighted data.
+
 ## xdelta / VCDIFF
 
 - `public/workers/vcdiff-secondary.js` runs *before* the vendored (unmodified) VCDIFF decoder in both workers. `inspect()` is a cheap structural scan used at file selection (flags damaged/truncated patches, unsupported compressors, oversized declarations); `prepare()` decodes LZMA-compressed sections into an equivalent plain VCDIFF that the vendored decoder applies unchanged; `verifyOutput()` checks every window's Adler-32 against the patched bytes, so a wrong source ROM or damaged patch is discarded instead of offered.

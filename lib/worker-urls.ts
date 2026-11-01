@@ -5,3 +5,8 @@
 export const ROM_PATCHER_WORKER_URL = process.env.NEXT_PUBLIC_ROM_PATCHER_WORKER_URL || "/workers/rom-patcher-worker.js";
 
 export const ANALYSIS_WORKER_URL = process.env.NEXT_PUBLIC_ANALYSIS_WORKER_URL || "/workers/analysis-worker.js";
+
+// ROM toolkit: streaming checksum worker and the ROM/patch compatibility worker.
+export const HASH_WORKER_URL = process.env.NEXT_PUBLIC_HASH_WORKER_URL || "/workers/hash-worker.js";
+
+export const COMPAT_WORKER_URL = process.env.NEXT_PUBLIC_COMPAT_WORKER_URL || "/workers/compat-worker.js";

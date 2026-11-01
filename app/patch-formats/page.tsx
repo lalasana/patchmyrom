@@ -127,6 +127,11 @@ export default function PatchFormatsPage() {
               title: "Pokemon ROM Patcher",
               description: "Base ROM and format reference for 50 popular Pokemon ROM hacks.",
             },
+            {
+              href: "/patch-compatibility-checker",
+              title: "ROM & Patch Compatibility Checker",
+              description: "Check whether a ROM matches a patch before you patch it.",
+            },
           ]}
         />
       </section>

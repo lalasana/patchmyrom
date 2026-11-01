@@ -31,6 +31,9 @@ export const BUNDLE_URL_PREFIX = `/${BUNDLE_DIR_NAME}/`;
 export const ENTRY_WORKERS = [
   { key: "romPatcher", source: "workers/rom-patcher-worker.js" },
   { key: "analysis", source: "workers/analysis-worker.js" },
+  // ROM toolkit (checksum checker, compatibility checker)
+  { key: "hash", source: "workers/hash-worker.js" },
+  { key: "compat", source: "workers/compat-worker.js" },
 ];
 
 const HASH_LENGTH = 12; // hex chars of SHA-256 (48 bits): plenty to tell versions of a handful of files apart

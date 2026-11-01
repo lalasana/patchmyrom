@@ -108,6 +108,16 @@ export default function HowToPatchPage() {
               title: "Troubleshooting",
               description: "Fix common ROM patching errors and mismatches.",
             },
+            {
+              href: "/rom-checksum-checker",
+              title: "ROM Checksum Checker",
+              description: "Get a ROM's CRC32, MD5, SHA-1 and SHA-256 and compare them with a published value.",
+            },
+            {
+              href: "/patch-compatibility-checker",
+              title: "ROM & Patch Compatibility Checker",
+              description: "Check whether a ROM matches a patch before you patch it.",
+            },
           ]}
         />
       </section>

@@ -16,6 +16,8 @@ function artFor(href: string): { art: CardArtName; accent: CardArtAccent } {
   if (href.startsWith("/pokemon")) return { art: "controller", accent: "purple" };
   if (href.startsWith("/how-to")) return { art: "guide", accent: "blue" };
   if (href.startsWith("/gba-emulator")) return { art: "controller", accent: "purple" };
+  if (href.startsWith("/rom-checksum-checker")) return { art: "checksum", accent: "blue" };
+  if (href.startsWith("/patch-compatibility-checker")) return { art: "patch", accent: "green" };
   if (/patcher/.test(href)) return { art: "patch", accent: "green" };
   return { art: "guide", accent: "blue" };
 }

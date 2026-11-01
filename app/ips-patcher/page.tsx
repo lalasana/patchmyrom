@@ -230,6 +230,11 @@ export default function IpsPatcherPage() {
               title: "SNES ROM Patcher",
               description: "IPS is still the most common format for SNES translation patches.",
             },
+            {
+              href: "/patch-compatibility-checker",
+              title: "ROM & Patch Compatibility Checker",
+              description: "Check whether a ROM matches a patch before you patch it.",
+            },
           ]}
         />
       </section>
