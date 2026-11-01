@@ -74,8 +74,21 @@
     return err;
   }
 
+  // Whole megabytes. Only for sizes that are always large (the 1 GiB limits), where rounding is harmless.
   function mb(bytes) {
     return Math.round(bytes / 1048576) + " MB";
+  }
+
+  // Human-readable size for anything that can be small: "512 B", "3.4 KB", "20.0 MB". Same B / KB / MB
+  // rules as lib/format-bytes.ts (the workers are plain scripts and cannot import it). Rounding to
+  // whole MB made a 300 KB allocation read as "0 MB".
+  function formatBytes(bytes) {
+    var n = Number(bytes);
+    if (!isFinite(n) || n < 0) n = 0;
+    n = Math.floor(n);
+    if (n < 1024) return n + " B";
+    if (n < 1048576) return (n / 1024).toFixed(1) + " KB";
+    return (n / 1048576).toFixed(1) + " MB";
   }
 
   function tooLarge(bytes) {
@@ -95,7 +108,7 @@
   function outOfMemory(bytes) {
     return fail(
       "out-of-memory",
-      "Your browser couldn't allocate the " + mb(bytes) + " this patch needs. Close other tabs and try again, or use a desktop computer for very large ROMs."
+      "Your browser couldn't allocate the " + formatBytes(bytes) + " this patch needs. Close other tabs and try again, or use a desktop computer for very large ROMs."
     );
   }
 
@@ -902,6 +915,7 @@
     verifyOutput: verifyOutput,
     adler32: adler32,
     outOfMemoryError: outOfMemory,
+    formatBytes: formatBytes,
     isVcdiff: function (u8) {
       return !!u8 && u8.length >= 3 && u8[0] === 0xd6 && u8[1] === 0xc3 && u8[2] === 0xc4;
     },

@@ -14,6 +14,8 @@ const eslintConfig = defineConfig([
     "next-env.d.ts",
     // Vendored third-party library, kept unmodified — not our code to lint.
     "public/vendor/**",
+    // Generated at build time from public/workers and public/vendor (scripts/worker-bundle.mjs).
+    "public/worker-bundle/**",
   ]),
 ]);
 

@@ -34,7 +34,7 @@ const TERMINAL_TYPES = new Set(["success", "error", "rom-result", "patch-result"
  * resolves with the first terminal message ("success" / "error" / "*-result"), plus every
  * message posted during that run under `.log`.
  */
-export function createWorker(workerFile) {
+export function createWorker(workerFile, { publicDir = PUBLIC_DIR, workerPath } = {}) {
   const sandbox = {
     console,
     setTimeout,
@@ -50,14 +50,16 @@ export function createWorker(workerFile) {
   sandbox.postMessage = () => {};
   sandbox.importScripts = (...urls) => {
     for (const url of urls) {
-      const file = path.join(PUBLIC_DIR, url);
+      const file = path.join(publicDir, url);
       vm.runInContext(fs.readFileSync(file, "utf8"), ctx, { filename: file });
     }
   };
 
   const ctx = vm.createContext(sandbox);
-  const workerPath = path.join(PUBLIC_DIR, "workers", workerFile);
-  vm.runInContext(fs.readFileSync(workerPath, "utf8"), ctx, { filename: workerPath });
+  // Default: the real source worker. `publicDir` + `workerPath` let a test run another tree laid out like
+  // public/ (e.g. the generated, content-hashed bundle) through exactly the same harness.
+  const entryPath = workerPath ?? path.join(publicDir, "workers", workerFile);
+  vm.runInContext(fs.readFileSync(entryPath, "utf8"), ctx, { filename: entryPath });
 
   return {
     context: ctx,

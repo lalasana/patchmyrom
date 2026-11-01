@@ -20,6 +20,9 @@
 # production
 /build
 
+# generated at build time by next.config.ts (scripts/worker-bundle.mjs)
+/public/worker-bundle/
+
 # misc
 .DS_Store
 *.pem

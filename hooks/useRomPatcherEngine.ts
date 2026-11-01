@@ -1,6 +1,7 @@
 "use client";
 
 import { useCallback, useEffect, useRef, useState } from "react";
+import { ROM_PATCHER_WORKER_URL } from "@/lib/worker-urls";
 
 export type PatchStage =
   | "idle"
@@ -82,7 +83,7 @@ export function useRomPatcherEngine() {
     // Start each run with a fresh worker so a previous run's handlers
     // can never race with or overwrite this one's state.
     workerRef.current?.terminate();
-    const worker = new Worker("/workers/rom-patcher-worker.js");
+    const worker = new Worker(ROM_PATCHER_WORKER_URL);
     workerRef.current = worker;
 
     setError(null);
@@ -110,7 +111,9 @@ export function useRomPatcherEngine() {
     };
 
     worker.onerror = (event: ErrorEvent) => {
-      setError(event.message || "Patching failed unexpectedly.");
+      // An empty message means the worker script itself could not load, which after a deploy happens
+      // to a tab that was opened on the previous release: reloading fetches the matching worker.
+      setError(event.message || "Patching failed unexpectedly. If PatchMyROM was just updated, reload this page and try again.");
       setStage("error");
       setProgress(null);
     };

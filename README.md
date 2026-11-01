@@ -44,6 +44,16 @@ The Play Store URL, names and placements live in one place: `lib/gba-emulator.ts
 - Old URL `/gba-play/`: permanent 301 via `public/_redirects` (Cloudflare Pages); `app/gba-play/page.tsx` is a canonical + meta-refresh fallback with no promo content.
 - Analytics: `gba_emulator_cta_view` / `gba_emulator_cta_click` with `placement` = `success | home | gba_page | gbc_page | pokemon_page | guide_page | emulator_page`, forwarded to an existing `gtag`/`dataLayer` only if the visitor accepted analytics cookies. No provider is bundled.
 
+## Web Worker caching and versioning
+
+Cloudflare Pages serves unhashed static files with `max-age=14400, must-revalidate`, so an unversioned worker or decoder could be reused for up to four hours after a deploy, next to a new page. Workers are therefore loaded from content-hashed URLs:
+
+- `scripts/worker-bundle.mjs` runs whenever `next.config.ts` is loaded (any build command; skipped by `next dev`). It copies each worker's `importScripts()` dependencies to `public/worker-bundle/<name>.<sha256-prefix>.js` (git-ignored, generated) and rewrites the entry workers to import those hashed URLs. The entry's own name hashes the *rewritten* content, so one URL pins one complete, consistent set (a change to any decoder re-versions both workers; unchanged files keep their URL and stay cached).
+- The sources in `public/workers` and `public/vendor` are untouched (the vendored library stays unmodified, and the Node tests still run the real source files). Add a script to a worker's `importScripts()` list and it is versioned automatically; the generator refuses dynamic lists, query strings, or dependencies that load further scripts.
+- `next.config.ts` passes the entry URLs to the app as `NEXT_PUBLIC_*_WORKER_URL`; `lib/worker-urls.ts` is the only place the hooks read them from. Never hard-code `/workers/...` in a `new Worker(...)` call.
+- `public/_headers`: `/worker-bundle/*` is `immutable` for a year; the legacy unhashed `/workers/*` and `/vendor/*` stay published for tabs opened before this change but are `no-cache` (always revalidated). They can be deleted from the deploy once old tabs no longer matter.
+- Tests: `tests/worker-bundle.test.mjs` (hash/content binding, determinism, CRLF-independence, which URLs change when a file changes, refusal of unsafe input, and the generated workers patching BPS/UPS/IPS/xdelta-LZMA identically to the sources).
+
 ## xdelta / VCDIFF
 
 - `public/workers/vcdiff-secondary.js` runs *before* the vendored (unmodified) VCDIFF decoder in both workers. `inspect()` is a cheap structural scan used at file selection (flags damaged/truncated patches, unsupported compressors, oversized declarations); `prepare()` decodes LZMA-compressed sections into an equivalent plain VCDIFF that the vendored decoder applies unchanged; `verifyOutput()` checks every window's Adler-32 against the patched bytes, so a wrong source ROM or damaged patch is discarded instead of offered.

@@ -1,6 +1,7 @@
 "use client";
 
 import { useCallback, useEffect, useRef, useState } from "react";
+import { ANALYSIS_WORKER_URL } from "@/lib/worker-urls";
 
 export type AnalysisStatus = "idle" | "analyzing" | "done" | "error";
 
@@ -72,7 +73,7 @@ export function useFileAnalysis() {
 
   function getWorker(): Worker {
     if (!workerRef.current) {
-      const worker = new Worker("/workers/analysis-worker.js");
+      const worker = new Worker(ANALYSIS_WORKER_URL);
       worker.onmessage = (event: MessageEvent<AnalysisResponse>) => {
         const data = event.data;
 

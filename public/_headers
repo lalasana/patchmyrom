@@ -1,0 +1,17 @@
+# Cloudflare Pages response headers (https://developers.cloudflare.com/pages/configuration/headers/).
+#
+# Pages' default for static files is `max-age=14400, must-revalidate`: a four-hour window in which a
+# browser can keep an old worker or decoder after a deploy.
+
+# Content-hashed worker bundle (scripts/worker-bundle.mjs). Every file name contains a hash of its
+# content, so a URL never changes meaning and can be cached for good; a new release gets new URLs.
+/worker-bundle/*
+  Cache-Control: public, max-age=31536000, immutable
+
+# The unhashed worker/decoder sources are still published (the app no longer loads them, but a tab
+# opened before this change may). Never serve them from cache without revalidating, so such a tab
+# always gets a self-consistent, current set.
+/workers/*
+  Cache-Control: no-cache
+/vendor/*
+  Cache-Control: no-cache
