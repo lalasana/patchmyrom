@@ -1,3 +1,4 @@
+import PageHero from "@/components/ui/PageHero";
 import type { Metadata } from "next";
 import Breadcrumbs from "@/components/ui/Breadcrumbs";
 import { siteConfig } from "@/lib/site";
@@ -14,9 +15,11 @@ export default function ContactPage() {
     <div className="container-page flex flex-col gap-8 py-10 sm:py-14">
       <Breadcrumbs items={[{ href: "/contact", label: "Contact" }]} />
 
-      <h1 className="text-3xl font-bold text-foreground sm:text-4xl">Contact</h1>
+      <PageHero art="mail" accent="blue">
+<h1 className="text-3xl font-bold text-foreground sm:text-4xl">Contact</h1>
+      </PageHero>
 
-      <div className="card flex flex-col gap-3 px-5 py-5 text-muted">
+      <div className="card flex flex-col gap-3 p-6 text-muted">
         <p>
           {siteConfig.name} has no account system or backend, so the fastest way to reach us is
           by email.

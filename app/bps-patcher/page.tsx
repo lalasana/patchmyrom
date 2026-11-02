@@ -1,3 +1,5 @@
+import PageHero from "@/components/ui/PageHero";
+import { BrandArt } from "@/components/ui/CardArt";
 import type { Metadata } from "next";
 import Link from "next/link";
 import Breadcrumbs from "@/components/ui/Breadcrumbs";
@@ -123,8 +125,8 @@ export default function BpsPatcherPage() {
       <JsonLd data={howToJsonLd} />
       <Breadcrumbs items={[{ href: "/bps-patcher", label: "BPS Patcher" }]} />
 
-      <div className="flex flex-col gap-3">
-        <h1 className="text-3xl font-bold text-foreground sm:text-4xl">BPS Patcher</h1>
+      <PageHero art="bps" accent="purple">
+<h1 className="text-3xl font-bold text-foreground sm:text-4xl">BPS Patcher</h1>
         <p className="max-w-2xl text-muted sm:text-lg">
           BPS patches carry their own checksum, so a bad match gets caught before it corrupts
           anything. Drop your ROM and .bps file in below — it applies entirely on your device.
@@ -132,11 +134,11 @@ export default function BpsPatcherPage() {
         <div>
           <FormatBadge format="BPS" />
         </div>
-      </div>
+      </PageHero>
 
       <section className="flex flex-col gap-4">
         <SectionHeading icon={<IconShieldCheck />} title="Why Hack Creators Reach for BPS" accent="purple" />
-        <div className="rounded-xl border-l-4 border-purple-500/40 bg-card/40 p-5">
+        <div className="card border-l-4 border-l-accent-purple p-5">
           <p className="max-w-3xl text-muted">
             IPS never checked whether it was touching the right file. BPS was built specifically
             to fix that — it records a checksum for the source ROM and the finished result, so
@@ -151,8 +153,8 @@ export default function BpsPatcherPage() {
         <SectionHeading icon={<IconLayers />} title="Step-by-Step" accent="blue" />
         <div className="grid gap-4 sm:grid-cols-2">
           {steps.map((step, index) => (
-            <div key={step.title} className="card flex gap-4 rounded-xl p-5">
-              <span className="flex h-8 w-8 flex-none items-center justify-center rounded-full bg-gradient-to-br from-accent-green to-accent-blue text-xs font-bold text-background">
+            <div key={step.title} className="card flex gap-4 p-5">
+              <span className="flex h-10 w-10 flex-none items-center justify-center rounded-xl bg-gradient-to-br from-accent-green to-accent-blue text-base font-extrabold text-background shadow-[0_6px_16px_-4px_rgba(57,224,127,0.6)]">
                 {index + 1}
               </span>
               <div>
@@ -232,7 +234,8 @@ export default function BpsPatcherPage() {
         />
       </section>
 
-      <div className="card flex flex-col items-center gap-3 rounded-2xl p-6 text-center">
+      <div className="card relative flex flex-col items-center gap-4 overflow-hidden rounded-3xl bg-gradient-to-br from-accent-green/10 via-card to-accent-blue/10 p-8 text-center">
+        <BrandArt className="h-20 w-20" />
         <p className="text-sm text-muted">
           BPS checks its own work, but the patcher still runs entirely in your browser — nothing
           is uploaded either way.

@@ -1,3 +1,5 @@
+import PageHero from "@/components/ui/PageHero";
+import { BrandArt } from "@/components/ui/CardArt";
 import type { Metadata } from "next";
 import Link from "next/link";
 import Breadcrumbs from "@/components/ui/Breadcrumbs";
@@ -123,8 +125,8 @@ export default function NdsRomPatcherPage() {
       <JsonLd data={howToJsonLd} />
       <Breadcrumbs items={[{ href: "/nds-rom-patcher", label: "NDS ROM Patcher" }]} />
 
-      <div className="flex flex-col gap-3">
-        <h1 className="text-3xl font-bold text-foreground sm:text-4xl">NDS ROM Patcher</h1>
+      <PageHero art="cartridge" accent="blue">
+<h1 className="text-3xl font-bold text-foreground sm:text-4xl">NDS ROM Patcher</h1>
         <p className="max-w-2xl text-muted sm:text-lg">
           Nintendo DS ROMs run much larger than earlier handheld games. This patcher is built to
           handle that size locally, with real progress instead of a frozen page.
@@ -132,11 +134,11 @@ export default function NdsRomPatcherPage() {
         <div>
           <FormatChip format="XDelta" />
         </div>
-      </div>
+      </PageHero>
 
       <section className="flex flex-col gap-4">
         <SectionHeading icon={<IconBolt />} title="Patching at DS Scale" accent="purple" />
-        <div className="rounded-xl border-l-4 border-purple-500/40 bg-card/40 p-5">
+        <div className="card border-l-4 border-l-accent-purple p-5">
           <p className="max-w-3xl text-muted">
             A DS ROM can be ten or twenty times the size of a typical GBA game. That changes what
             patching actually involves — instead of a near-instant operation, reading and
@@ -151,8 +153,8 @@ export default function NdsRomPatcherPage() {
         <SectionHeading icon={<IconLayers />} title="Step-by-Step" accent="blue" />
         <div className="grid gap-4 sm:grid-cols-2">
           {steps.map((step, index) => (
-            <div key={step.title} className="card flex gap-4 rounded-xl p-5">
-              <span className="flex h-8 w-8 flex-none items-center justify-center rounded-full bg-gradient-to-br from-accent-green to-accent-blue text-xs font-bold text-background">
+            <div key={step.title} className="card flex gap-4 p-5">
+              <span className="flex h-10 w-10 flex-none items-center justify-center rounded-xl bg-gradient-to-br from-accent-green to-accent-blue text-base font-extrabold text-background shadow-[0_6px_16px_-4px_rgba(57,224,127,0.6)]">
                 {index + 1}
               </span>
               <div>
@@ -232,7 +234,8 @@ export default function NdsRomPatcherPage() {
         />
       </section>
 
-      <div className="card flex flex-col items-center gap-3 rounded-2xl p-6 text-center">
+      <div className="card relative flex flex-col items-center gap-4 overflow-hidden rounded-3xl bg-gradient-to-br from-accent-green/10 via-card to-accent-blue/10 p-8 text-center">
+        <BrandArt className="h-20 w-20" />
         <p className="text-sm text-muted">
           Big file, same guarantee — it never leaves your device, patched entirely in this
           browser tab.

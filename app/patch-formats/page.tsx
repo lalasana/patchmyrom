@@ -1,3 +1,5 @@
+import PageHero from "@/components/ui/PageHero";
+import CardArt, { type CardArtAccent, type CardArtName } from "@/components/ui/CardArt";
 import type { Metadata } from "next";
 import Link from "next/link";
 import Breadcrumbs from "@/components/ui/Breadcrumbs";
@@ -63,48 +65,66 @@ const formats = [
   },
 ];
 
+const ART_NAME: Record<string, CardArtName> = {
+  IPS: "ips",
+  UPS: "ups",
+  BPS: "bps",
+  XDelta: "xdelta",
+};
+
+const ART_ACCENT: Record<string, CardArtAccent> = {
+  IPS: "green",
+  UPS: "blue",
+  BPS: "purple",
+  XDelta: "amber",
+};
+
 export default function PatchFormatsPage() {
   return (
     <div className="container-page flex flex-col gap-10 py-10 sm:py-14">
       <Breadcrumbs items={[{ href: "/patch-formats", label: "Patch Formats" }]} />
 
-      <div className="flex flex-col gap-3">
-        <h1 className="text-3xl font-bold text-foreground sm:text-4xl">ROM Patch Formats Explained</h1>
+      <PageHero art="formats" accent="blue">
+<h1 className="text-3xl font-bold text-foreground sm:text-4xl">ROM Patch Formats Explained</h1>
         <p className="max-w-2xl text-muted sm:text-lg">
           A quick reference for the most common ROM patch formats and when you&rsquo;ll encounter
           each one.
         </p>
-      </div>
+      </PageHero>
 
       <div className="flex flex-col gap-6">
         {formats.map((format) => (
-          <section
-            key={format.name}
-            className={`rounded-xl border border-border border-l-4 bg-card px-5 py-5 ${format.border}`}
-          >
-            <div className="flex items-center gap-3">
-              <h2 className="text-xl font-semibold text-foreground">{format.name}</h2>
-              <FormatChip format={format.chip} />
+          <section key={format.name} className="pixel-card flex flex-col overflow-hidden md:flex-row">
+            <CardArt
+              name={ART_NAME[format.chip]}
+              accent={ART_ACCENT[format.chip]}
+              className="h-32 md:h-auto md:w-64 md:flex-none md:border-b-0 md:border-r"
+            />
+            <div className="flex-1 px-6 py-5">
+              <div className="flex items-center gap-3">
+                <h2 className="text-2xl font-bold text-foreground">{format.name}</h2>
+                <FormatChip format={format.chip} />
+              </div>
+              <p className="mt-2 text-muted">{format.summary}</p>
+              <ul className="mt-3 list-disc space-y-1 pl-5 text-sm text-muted marker:text-accent-green">
+                {format.details.map((detail) => (
+                  <li key={detail}>{detail}</li>
+                ))}
+              </ul>
+              <Link
+                href={format.href}
+                className="mt-4 inline-flex items-center gap-1 text-sm font-semibold text-accent-blue hover:underline"
+              >
+                Full {format.name} patcher guide
+                <IconArrowRight className="h-3.5 w-3.5" />
+              </Link>
             </div>
-            <p className="mt-2 text-muted">{format.summary}</p>
-            <ul className="mt-3 list-disc space-y-1 pl-5 text-sm text-muted">
-              {format.details.map((detail) => (
-                <li key={detail}>{detail}</li>
-              ))}
-            </ul>
-            <Link
-              href={format.href}
-              className="mt-3 inline-flex items-center gap-1 text-sm font-medium text-accent-blue hover:underline"
-            >
-              Full {format.name} patcher guide
-              <IconArrowRight className="h-3.5 w-3.5" />
-            </Link>
           </section>
         ))}
       </div>
 
       <section className="flex flex-col gap-4">
-        <h2 className="text-2xl font-semibold text-foreground">Related Guides</h2>
+        <h2 className="text-2xl font-bold tracking-tight text-foreground sm:text-3xl">Related Guides</h2>
         <RelatedGuides
           items={[
             {

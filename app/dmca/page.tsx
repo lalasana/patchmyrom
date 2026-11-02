@@ -1,3 +1,4 @@
+import PageHero from "@/components/ui/PageHero";
 import type { Metadata } from "next";
 import Breadcrumbs from "@/components/ui/Breadcrumbs";
 import { siteConfig } from "@/lib/site";
@@ -14,9 +15,11 @@ export default function DmcaPage() {
     <div className="container-page flex flex-col gap-8 py-10 sm:py-14">
       <Breadcrumbs items={[{ href: "/dmca", label: "DMCA" }]} />
 
-      <h1 className="text-3xl font-bold text-foreground sm:text-4xl">DMCA Policy</h1>
+      <PageHero art="legal" accent="blue">
+<h1 className="text-3xl font-bold text-foreground sm:text-4xl">DMCA Policy</h1>
+      </PageHero>
 
-      <section className="flex flex-col gap-3 text-muted">
+      <section className="pixel-card flex flex-col gap-3 p-6 text-muted">
         <p>
           {siteConfig.name} respects the intellectual property rights of others. This site does
           not host or distribute copyrighted ROM files. If you believe content linked from or
@@ -25,8 +28,8 @@ export default function DmcaPage() {
         </p>
       </section>
 
-      <section className="flex flex-col gap-3 text-muted">
-        <h2 className="text-xl font-semibold text-foreground">Filing a Notice</h2>
+      <section className="pixel-card flex flex-col gap-3 p-6 text-muted">
+        <h2 className="border-l-4 border-accent-green pl-3 text-xl font-bold text-foreground">Filing a Notice</h2>
         <p>Please include the following information in your takedown request:</p>
         <ul className="list-disc space-y-1 pl-5">
           <li>Identification of the copyrighted work claimed to be infringed.</li>
@@ -37,8 +40,8 @@ export default function DmcaPage() {
         </ul>
       </section>
 
-      <section className="flex flex-col gap-3 text-muted">
-        <h2 className="text-xl font-semibold text-foreground">Contact</h2>
+      <section className="pixel-card flex flex-col gap-3 p-6 text-muted">
+        <h2 className="border-l-4 border-accent-green pl-3 text-xl font-bold text-foreground">Contact</h2>
         <p>
           Send DMCA notices to{" "}
           <a href={`mailto:${siteConfig.contactEmail}`} className="text-accent-blue hover:underline">

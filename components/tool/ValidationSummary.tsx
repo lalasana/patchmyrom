@@ -12,15 +12,15 @@ type ValidationSummaryProps = {
 
 const LEVEL_STYLES = {
   ok: {
-    classes: "border-accent-green/30 bg-accent-green/10 text-accent-green",
+    classes: "border-accent-green/40 bg-gradient-to-r from-accent-green/15 to-accent-green/5 text-accent-green",
     icon: IconShieldCheck,
   },
   info: {
-    classes: "border-accent-blue/40 bg-accent-blue/10 text-foreground",
+    classes: "border-accent-blue/40 bg-gradient-to-r from-accent-blue/15 to-accent-blue/5 text-foreground",
     icon: IconInfo,
   },
   warning: {
-    classes: "border-amber-500/30 bg-amber-500/10 text-amber-200",
+    classes: "border-amber-400/40 bg-gradient-to-r from-amber-500/15 to-amber-500/5 text-amber-200",
     icon: IconAlertTriangle,
   },
   unknown: {
@@ -37,7 +37,7 @@ export default function ValidationSummary({ check, id }: ValidationSummaryProps)
   const live = check.blocking ? { role: "alert" as const } : { role: "status" as const };
 
   return (
-    <div id={id} {...live} className={`flex items-start gap-3 rounded-lg border px-4 py-3 text-sm ${classes}`}>
+    <div id={id} {...live} className={`flex items-start gap-3 rounded-xl border px-4 py-3.5 text-sm shadow-[0_10px_24px_-18px_rgba(0,0,0,0.9)] ${classes}`}>
       <Icon className="mt-0.5 h-5 w-5 flex-none" />
       <div className="min-w-0 flex-1">
         {check.blocking && <p className="font-semibold">{check.title}</p>}

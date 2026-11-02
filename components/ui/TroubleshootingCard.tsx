@@ -1,5 +1,6 @@
 import Link from "next/link";
 import type { ReactNode } from "react";
+import CardArt, { type CardArtName } from "@/components/ui/CardArt";
 import { IconArrowRight } from "@/components/ui/icons";
 
 export type TroubleshootingItem = {
@@ -10,29 +11,38 @@ export type TroubleshootingItem = {
 type TroubleshootingCardProps = TroubleshootingItem & {
   icon?: ReactNode;
   href?: string;
+  art?: CardArtName;
 };
 
-export default function TroubleshootingCard({ problem, solution, icon, href }: TroubleshootingCardProps) {
+/** Pick a fitting illustration from the wording of the problem (purely decorative). */
+function inferArt(problem: string): CardArtName {
+  const text = problem.toLowerCase();
+  if (/checksum|hash|crc|header/.test(text)) return "checksum";
+  if (/white screen|black screen|crash|won'?t open|freez|blank/.test(text)) return "whitescreen";
+  if (/wrong|match|base rom|version|region|revision|clean/.test(text)) return "wrongrom";
+  if (/format|extension|unsupported|rejected|won'?t load|corrupt|\.(ips|ups|bps|xdelta)/.test(text)) return "unsupported";
+  if (/size|output|download|large/.test(text)) return "download";
+  return "warning";
+}
+
+export default function TroubleshootingCard({ problem, solution, href, art }: TroubleshootingCardProps) {
   const content = (
     <>
-      {icon && (
-        <span className="flex h-9 w-9 items-center justify-center rounded-lg bg-amber-500/10 text-amber-400">
-          <span className="[&>svg]:h-5 [&>svg]:w-5">{icon}</span>
-        </span>
-      )}
-      <p className="mt-3 font-medium text-foreground">{problem}</p>
-      <p className="mt-1 text-sm text-muted">{solution}</p>
-      {href && (
-        <span className="mt-3 inline-flex items-center gap-1 text-xs font-medium text-accent-blue">
-          Learn more
-          <IconArrowRight className="h-3.5 w-3.5" />
-        </span>
-      )}
+      <CardArt name={art ?? inferArt(problem)} accent="amber" className="h-28" />
+      <div className="flex flex-1 flex-col px-5 pb-5 pt-4">
+        <p className="text-lg font-bold leading-snug text-foreground">{problem}</p>
+        <p className="mt-1.5 text-sm leading-relaxed text-muted">{solution}</p>
+        {href && (
+          <span className="mt-auto inline-flex items-center gap-1 pt-4 text-xs font-semibold text-amber-300">
+            Learn more
+            <IconArrowRight className="h-3.5 w-3.5 transition-transform group-hover:translate-x-1" />
+          </span>
+        )}
+      </div>
     </>
   );
 
-  const className =
-    "flex flex-col rounded-xl border border-amber-500/20 bg-card px-4 py-4 transition-all hover:-translate-y-0.5 hover:border-amber-500/45 hover:shadow-lg hover:shadow-amber-500/5";
+  const className = "pixel-card pixel-hover group flex flex-col overflow-hidden";
 
   if (href) {
     return (

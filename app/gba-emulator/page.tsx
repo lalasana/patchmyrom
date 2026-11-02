@@ -270,7 +270,7 @@ export default function GbaEmulatorPage() {
           <SectionTitle eyebrow="Features" title="Everything you need to play" />
           <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
             {features.map((feature) => (
-              <div key={feature.title} className="card flex gap-4 rounded-xl p-5">
+              <div key={feature.title} className="card flex gap-4 p-5">
                 <span className="flex h-10 w-10 flex-none items-center justify-center rounded-lg bg-accent-blue/10 text-accent-blue [&>svg]:h-5 [&>svg]:w-5">
                   {feature.icon}
                 </span>

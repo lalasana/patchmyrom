@@ -10,7 +10,7 @@ import PatchAnalysisPanel from "@/components/tool/PatchAnalysisPanel";
 import ValidationSummary from "@/components/tool/ValidationSummary";
 import PatchHistoryPanel from "@/components/tool/PatchHistoryPanel";
 import { Button } from "@/components/ui/Button";
-import { IconAlertTriangle, IconCartridge, IconPatchFile } from "@/components/ui/icons";
+import { IconAlertTriangle, IconBolt, IconCartridge, IconPatchFile } from "@/components/ui/icons";
 import { useRomPatcherEngine, type PatchResult } from "@/hooks/useRomPatcherEngine";
 import { useFileAnalysis } from "@/hooks/useFileAnalysis";
 import { addHistoryEntry } from "@/lib/patch-history";
@@ -117,21 +117,34 @@ export default function RomPatcherTool() {
 
   return (
     <>
-      <div className="glow-border rounded-2xl">
-        <div className="card flex flex-col gap-6 rounded-2xl p-5 shadow-2xl shadow-black/20 sm:p-7">
+      <div className="retro-window">
+        <div aria-hidden className="retro-titlebar">
+          <span className="retro-dot bg-rose-400" />
+          <span className="retro-dot bg-amber-300" />
+          <span className="retro-dot bg-accent-green" />
+          <span className="ml-2 h-1 flex-1 rounded-full bg-gradient-to-r from-accent-green/40 via-accent-blue/30 to-transparent" />
+        </div>
+        <div className="flex flex-col gap-6 p-5 sm:p-7">
           <div className="flex items-center gap-3">
-            <span className="flex h-9 w-9 items-center justify-center rounded-lg bg-gradient-to-br from-accent-green/20 to-accent-blue/20 text-accent-green">
+            <span className="flex h-10 w-10 items-center justify-center rounded-lg border-2 border-accent-green/40 bg-gradient-to-br from-accent-green/20 to-accent-blue/20 text-accent-green shadow-[0_3px_0_0_rgba(0,0,0,0.35)]">
               <IconCartridge className="h-5 w-5" />
             </span>
-            <h2 className="text-lg font-semibold text-foreground">Patch a ROM</h2>
+            <h2 className="text-2xl font-bold text-foreground">Patch a ROM</h2>
           </div>
 
-          <div className="grid gap-4 sm:grid-cols-2">
+          <div className="relative grid gap-5 sm:grid-cols-2 sm:gap-8">
+            <span
+              aria-hidden
+              className="pointer-events-none absolute left-1/2 top-1/2 z-10 hidden h-11 w-11 -translate-x-1/2 -translate-y-1/2 items-center justify-center rounded-full border-2 border-border bg-card text-xl font-bold text-accent-green shadow-[0_8px_20px_-6px_rgba(0,0,0,0.8)] sm:flex"
+            >
+              +
+            </span>
             <div className="flex min-w-0 flex-col gap-2">
               <FileDropZone
                 label="Original ROM file"
                 hint="Select the original ROM file from your device"
                 icon={<IconCartridge />}
+                art="cartridge"
                 file={romFile}
                 onFileSelected={handleRomSelected}
               />
@@ -147,6 +160,7 @@ export default function RomPatcherTool() {
                 label="Patch file"
                 hint="Supports .ips, .ups, .bps, .xdelta and more"
                 icon={<IconPatchFile />}
+                art="patch"
                 file={patchFile}
                 onFileSelected={handlePatchSelected}
               />
@@ -174,6 +188,7 @@ export default function RomPatcherTool() {
 
           <Button
             type="button"
+            className="min-h-14 text-base"
             disabled={!hasBothFiles || isProcessing || isKnownUnrecognized || isPatchUnusable || isBlocked}
             fullWidth
             aria-describedby={isBlocked ? "compat-verdict" : undefined}
@@ -188,6 +203,7 @@ export default function RomPatcherTool() {
             }
             onClick={handleApplyPatch}
           >
+            <IconBolt className="h-5 w-5" />
             {BUTTON_LABELS[stage] ?? "Apply Patch"}
           </Button>
 

@@ -1,3 +1,5 @@
+import PageHero from "@/components/ui/PageHero";
+import { BrandArt } from "@/components/ui/CardArt";
 import type { Metadata } from "next";
 import Link from "next/link";
 import Breadcrumbs from "@/components/ui/Breadcrumbs";
@@ -124,8 +126,8 @@ export default function IpsPatcherPage() {
       <JsonLd data={howToJsonLd} />
       <Breadcrumbs items={[{ href: "/ips-patcher", label: "IPS Patcher" }]} />
 
-      <div className="flex flex-col gap-3">
-        <h1 className="text-3xl font-bold text-foreground sm:text-4xl">IPS Patcher</h1>
+      <PageHero art="ips" accent="green">
+<h1 className="text-3xl font-bold text-foreground sm:text-4xl">IPS Patcher</h1>
         <p className="max-w-2xl text-muted sm:text-lg">
           IPS is the oldest patch format still in everyday use. If your file ends in{" "}
           <code className="text-foreground">.ips</code>, this tool applies it locally — no
@@ -134,11 +136,11 @@ export default function IpsPatcherPage() {
         <div>
           <FormatBadge format="IPS" />
         </div>
-      </div>
+      </PageHero>
 
       <section className="flex flex-col gap-4">
         <SectionHeading icon={<IconInfo />} title="Where IPS Still Shows Up" accent="green" />
-        <div className="rounded-xl border-l-4 border-accent-green/40 bg-card/40 p-5">
+        <div className="card border-l-4 border-l-accent-green p-5">
           <p className="max-w-3xl text-muted">
             IPS predates almost every other patch format in this space, and it&apos;s still the
             default output for a lot of hacking tools simply because it&apos;s easy to implement.
@@ -153,8 +155,8 @@ export default function IpsPatcherPage() {
         <SectionHeading icon={<IconLayers />} title="Step-by-Step" accent="blue" />
         <div className="grid gap-4 sm:grid-cols-2">
           {steps.map((step, index) => (
-            <div key={step.title} className="card flex gap-4 rounded-xl p-5">
-              <span className="flex h-8 w-8 flex-none items-center justify-center rounded-full bg-gradient-to-br from-accent-green to-accent-blue text-xs font-bold text-background">
+            <div key={step.title} className="card flex gap-4 p-5">
+              <span className="flex h-10 w-10 flex-none items-center justify-center rounded-xl bg-gradient-to-br from-accent-green to-accent-blue text-base font-extrabold text-background shadow-[0_6px_16px_-4px_rgba(57,224,127,0.6)]">
                 {index + 1}
               </span>
               <div>
@@ -239,7 +241,8 @@ export default function IpsPatcherPage() {
         />
       </section>
 
-      <div className="card flex flex-col items-center gap-3 rounded-2xl p-6 text-center">
+      <div className="card relative flex flex-col items-center gap-4 overflow-hidden rounded-3xl bg-gradient-to-br from-accent-green/10 via-card to-accent-blue/10 p-8 text-center">
+        <BrandArt className="h-20 w-20" />
         <p className="text-sm text-muted">
           Got a ROM and an .ips file ready? Nothing leaves your device — the patch runs entirely
           in this browser tab.

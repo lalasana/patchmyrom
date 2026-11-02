@@ -27,7 +27,7 @@ export default function PatchAnalysisPanel({ analysis, status, progress, error }
 
   if (status === "error") {
     return (
-      <div className="flex items-start gap-2 rounded-lg border border-amber-500/30 bg-amber-500/10 px-3 py-2 text-xs text-amber-200">
+      <div className="flex items-start gap-2 rounded-xl border border-amber-400/40 bg-amber-500/10 px-3.5 py-2.5 text-xs text-amber-200">
         <IconAlertTriangle className="h-4 w-4 flex-none text-amber-400" />
         <p>{error ?? "Could not analyze this file."}</p>
       </div>
@@ -38,7 +38,7 @@ export default function PatchAnalysisPanel({ analysis, status, progress, error }
 
   if (!analysis.recognized) {
     return (
-      <div className="flex items-start gap-2 rounded-lg border border-amber-500/30 bg-amber-500/10 px-3 py-2 text-xs text-amber-200">
+      <div className="flex items-start gap-2 rounded-xl border border-amber-400/40 bg-amber-500/10 px-3.5 py-2.5 text-xs text-amber-200">
         <IconAlertTriangle className="h-4 w-4 flex-none text-amber-400" />
         <p>
           Unrecognized patch format — this file doesn&apos;t match any supported patch signature
@@ -51,7 +51,7 @@ export default function PatchAnalysisPanel({ analysis, status, progress, error }
   const chipKey = mapDetectedFormatToChipKey(analysis.format);
 
   return (
-    <div className="rounded-lg border border-border bg-card/40 px-3 py-2.5 text-xs">
+    <div className="rounded-xl border border-border bg-background/50 px-3.5 py-3 text-xs shadow-[inset_0_1px_0_0_rgba(255,255,255,0.04)]">
       <div className="flex items-center gap-2">
         {chipKey ? (
           <FormatBadge format={chipKey} />

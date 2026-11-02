@@ -30,8 +30,8 @@ export default function PatchHistoryPanel() {
   if (history.length === 0) return null;
 
   return (
-    <div className="glow-border rounded-2xl">
-      <div className="card flex flex-col gap-4 rounded-2xl p-5 sm:p-6">
+    <div className="retro-window">
+      <div className="flex flex-col gap-4 p-5 sm:p-6">
         <button
           type="button"
           onClick={() => setIsOpen((prev) => !prev)}
@@ -58,7 +58,7 @@ export default function PatchHistoryPanel() {
               {history.map((entry) => {
                 const chipKey = mapDetectedFormatToChipKey(entry.format);
                 return (
-                  <div key={entry.id} className="flex flex-col gap-1.5 rounded-lg border border-border bg-card/40 px-3 py-2.5 text-xs">
+                  <div key={entry.id} className="flex flex-col gap-1.5 rounded-xl border border-border bg-background/50 px-3.5 py-3 text-xs">
                     <div className="flex flex-wrap items-center justify-between gap-2">
                       <span className="text-muted">{formatDate(entry.date)}</span>
                       {chipKey ? (

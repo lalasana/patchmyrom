@@ -1,3 +1,4 @@
+import PageHero from "@/components/ui/PageHero";
 import type { Metadata } from "next";
 import Breadcrumbs from "@/components/ui/Breadcrumbs";
 import TroubleshootingCard from "@/components/ui/TroubleshootingCard";
@@ -78,12 +79,12 @@ export default function TroubleshootingPage() {
     <div className="container-page flex flex-col gap-10 py-10 sm:py-14">
       <Breadcrumbs items={[{ href: "/troubleshooting", label: "Troubleshooting" }]} />
 
-      <div className="flex flex-col gap-3">
-        <h1 className="text-3xl font-bold text-foreground sm:text-4xl">Troubleshooting</h1>
+      <PageHero art="troubleshoot" accent="amber">
+<h1 className="text-3xl font-bold text-foreground sm:text-4xl">Troubleshooting</h1>
         <p className="max-w-2xl text-muted sm:text-lg">
           Common ROM patching problems and how to fix them.
         </p>
-      </div>
+      </PageHero>
 
       <section className="flex flex-col gap-4">
         <SectionHeading icon={<IconAlertTriangle />} title="Common Issues" accent="amber" />

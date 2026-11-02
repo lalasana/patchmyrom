@@ -32,13 +32,21 @@ export default function DownloadResult({ result }: DownloadResultProps) {
   }
 
   return (
-    <div className="flex flex-col items-center gap-3 rounded-xl border border-dashed border-border bg-card/40 px-4 py-6 text-center">
+    <div
+      className={`relative flex flex-col items-center gap-3 overflow-hidden rounded-2xl px-5 py-7 text-center ${
+        result
+          ? "result-ready border-2 border-accent-green/60 bg-gradient-to-br from-accent-green/15 via-card to-accent-blue/10"
+          : "border-2 border-dashed border-border bg-background/40"
+      }`}
+    >
       <span
-        className={`flex h-10 w-10 items-center justify-center rounded-full ${
-          result ? "bg-accent-green/15 text-accent-green" : "bg-border/40 text-muted"
+        className={`flex h-14 w-14 items-center justify-center rounded-2xl border shadow-[0_8px_20px_-8px_rgba(0,0,0,0.7)] ${
+          result
+            ? "border-accent-green/60 bg-gradient-to-br from-accent-green to-accent-blue text-background"
+            : "border-border bg-card text-muted"
         }`}
       >
-        <IconDownloadTray className="h-5 w-5" />
+        <IconDownloadTray className="h-6 w-6" />
       </span>
       <span className="max-w-sm text-sm text-muted">
         {result ? (
@@ -80,7 +88,7 @@ export default function DownloadResult({ result }: DownloadResultProps) {
         type="button"
         disabled={!result}
         fullWidth={false}
-        className="min-h-11 sm:w-auto"
+        className="min-h-12 px-8 text-base sm:w-auto"
         onClick={handleDownload}
       >
         Download Patched File

@@ -1,3 +1,4 @@
+import PageHero from "@/components/ui/PageHero";
 import type { Metadata } from "next";
 import Breadcrumbs from "@/components/ui/Breadcrumbs";
 import { siteConfig } from "@/lib/site";
@@ -14,10 +15,12 @@ export default function DisclaimerPage() {
     <div className="container-page flex flex-col gap-8 py-10 sm:py-14">
       <Breadcrumbs items={[{ href: "/disclaimer", label: "Disclaimer" }]} />
 
-      <h1 className="text-3xl font-bold text-foreground sm:text-4xl">Disclaimer</h1>
+      <PageHero art="legal" accent="amber">
+<h1 className="text-3xl font-bold text-foreground sm:text-4xl">Disclaimer</h1>
+      </PageHero>
 
-      <section className="flex flex-col gap-3 text-muted">
-        <h2 className="text-xl font-semibold text-foreground">No ROM Files Provided</h2>
+      <section className="pixel-card flex flex-col gap-3 p-6 text-muted">
+        <h2 className="border-l-4 border-accent-green pl-3 text-xl font-bold text-foreground">No ROM Files Provided</h2>
         <p>
           {siteConfig.name} does not host, distribute, link to, or provide copyrighted ROM files
           of any kind. This site is a patching tool only — it applies a patch file you provide to
@@ -25,8 +28,8 @@ export default function DisclaimerPage() {
         </p>
       </section>
 
-      <section className="flex flex-col gap-3 text-muted">
-        <h2 className="text-xl font-semibold text-foreground">Your Responsibility</h2>
+      <section className="pixel-card flex flex-col gap-3 p-6 text-muted">
+        <h2 className="border-l-4 border-accent-green pl-3 text-xl font-bold text-foreground">Your Responsibility</h2>
         <p>
           You are solely responsible for ensuring that any ROM file you use with this tool is a
           legally-obtained backup of a game you own. Using this tool with ROM files you do not
@@ -34,8 +37,8 @@ export default function DisclaimerPage() {
         </p>
       </section>
 
-      <section className="flex flex-col gap-3 text-muted">
-        <h2 className="text-xl font-semibold text-foreground">Third-Party Patches</h2>
+      <section className="pixel-card flex flex-col gap-3 p-6 text-muted">
+        <h2 className="border-l-4 border-accent-green pl-3 text-xl font-bold text-foreground">Third-Party Patches</h2>
         <p>
           ROM hack patches referenced or linked from this site are created by independent, third
           party communities and creators. {siteConfig.name} is not affiliated with, and does not

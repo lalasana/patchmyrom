@@ -1,3 +1,5 @@
+import PageHero from "@/components/ui/PageHero";
+import { BrandArt } from "@/components/ui/CardArt";
 import type { Metadata } from "next";
 import Link from "next/link";
 import RomPatcherTool from "@/components/tool/RomPatcherTool";
@@ -156,13 +158,13 @@ export default function PokemonRomPatcherPage() {
 
       <div className="relative">
         <BackgroundGlow />
-        <div className="flex flex-col gap-3">
-          <h1 className="text-3xl font-bold text-foreground sm:text-4xl">Pokemon ROM Patcher</h1>
+        <PageHero art="controller" accent="purple">
+<h1 className="text-3xl font-bold text-foreground sm:text-4xl">Pokemon ROM Patcher</h1>
           <p className="max-w-2xl text-muted sm:text-lg">
             Apply Pokemon ROM hack patches directly in your browser. Nothing is uploaded — your base
             ROM and patch file stay on your device.
           </p>
-        </div>
+      </PageHero>
 
         <div id="pokemon-rom-tool" className="mt-8 flex flex-col gap-6 scroll-mt-24">
           <RomPatcherTool />
@@ -268,7 +270,7 @@ export default function PokemonRomPatcherPage() {
 
       <section className="flex flex-col gap-4">
         <SectionHeading icon={<IconGamepad />} title="Patching Pokemon ROM Hacks" accent="purple" />
-        <div className="rounded-xl border-l-4 border-purple-500/40 bg-card/40 p-5">
+        <div className="card border-l-4 border-l-accent-purple p-5">
           <p className="max-w-3xl text-muted">
             Pokemon ROM hacks range from small difficulty tweaks to entirely new regions and
             stories. Because hack creators can&rsquo;t legally distribute the full modified game,
@@ -331,7 +333,8 @@ export default function PokemonRomPatcherPage() {
         <FaqAccordion items={faqItems} />
       </section>
 
-      <div className="card flex flex-col items-center gap-3 rounded-2xl p-6 text-center">
+      <div className="card relative flex flex-col items-center gap-4 overflow-hidden rounded-3xl bg-gradient-to-br from-accent-green/10 via-card to-accent-blue/10 p-8 text-center">
+        <BrandArt className="h-20 w-20" />
         <p className="text-sm text-muted">
           Ready to patch your Pokemon ROM hack? {siteConfig.name} processes everything locally in
           your browser — nothing is uploaded.

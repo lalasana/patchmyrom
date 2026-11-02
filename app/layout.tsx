@@ -62,6 +62,12 @@ export default function RootLayout({
       "@type": "Organization",
       name: siteConfig.name,
       url: siteConfig.url,
+      logo: {
+        "@type": "ImageObject",
+        url: `${siteConfig.url}${siteConfig.logoSquare}`,
+        width: 512,
+        height: 512,
+      },
     },
   };
 
@@ -71,7 +77,9 @@ export default function RootLayout({
       className={`${geistSans.variable} ${geistMono.variable} h-full antialiased`}
     >
       <body className="min-h-full flex flex-col bg-background text-foreground">
+        <div aria-hidden className="bg-aurora pointer-events-none fixed inset-0 -z-20" />
         <div aria-hidden className="pointer-events-none fixed inset-0 -z-10 bg-grid-pattern" />
+        <div aria-hidden className="bg-noise pointer-events-none fixed inset-0 -z-10" />
         <JsonLd data={organizationJsonLd} />
         <CookieConsentProvider>
           <Header />

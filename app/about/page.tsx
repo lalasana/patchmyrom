@@ -1,3 +1,4 @@
+import PageHero from "@/components/ui/PageHero";
 import type { Metadata } from "next";
 import Breadcrumbs from "@/components/ui/Breadcrumbs";
 import { buildPageMetadata } from "@/lib/seo";
@@ -13,11 +14,11 @@ export default function AboutPage() {
     <div className="container-page flex flex-col gap-8 py-10 sm:py-14">
       <Breadcrumbs items={[{ href: "/about", label: "About" }]} />
 
-      <div className="flex flex-col gap-3">
-        <h1 className="text-3xl font-bold text-foreground sm:text-4xl">About PatchMyROM</h1>
-      </div>
+      <PageHero art="cartridge" accent="green">
+<h1 className="text-3xl font-bold text-foreground sm:text-4xl">About PatchMyROM</h1>
+      </PageHero>
 
-      <section className="flex flex-col gap-3 text-muted">
+      <section className="pixel-card flex flex-col gap-3 p-6 text-muted">
         <p>
           PatchMyROM is a free, browser-based tool for applying ROM patch files (IPS, UPS, BPS,
           and xdelta) to your own legally-dumped game backups. The project&rsquo;s goal is simple:
@@ -30,8 +31,8 @@ export default function AboutPage() {
         </p>
       </section>
 
-      <section className="flex flex-col gap-3">
-        <h2 className="text-xl font-semibold text-foreground">Project Status</h2>
+      <section className="pixel-card flex flex-col gap-3 p-6">
+        <h2 className="border-l-4 border-accent-green pl-3 text-xl font-bold text-foreground">Project Status</h2>
         <p className="text-muted">
           PatchMyROM&rsquo;s ROM patcher runs entirely in your browser, powered by an open-source
           patching engine running inside a Web Worker so the page never freezes on large ROM
@@ -39,8 +40,8 @@ export default function AboutPage() {
         </p>
       </section>
 
-      <section className="flex flex-col gap-3">
-        <h2 className="text-xl font-semibold text-foreground">Attribution</h2>
+      <section className="pixel-card flex flex-col gap-3 p-6">
+        <h2 className="border-l-4 border-accent-green pl-3 text-xl font-bold text-foreground">Attribution</h2>
         <p className="text-muted">
           PatchMyROM&rsquo;s patch engine is powered by{" "}
           <a

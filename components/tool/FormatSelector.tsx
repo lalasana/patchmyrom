@@ -10,13 +10,13 @@ type FormatSelectorProps = {
 
 export default function FormatSelector({ value, onChange }: FormatSelectorProps) {
   return (
-    <label className="flex flex-col gap-2 text-sm font-medium text-foreground">
+    <label className="flex flex-col gap-2.5 text-base font-bold tracking-tight text-foreground">
       Patch format
       <div className="relative">
         <select
           value={value}
           onChange={(event) => onChange(event.target.value as PatchFormat)}
-          className="w-full appearance-none rounded-lg border border-border bg-card/60 px-3 py-2.5 text-sm text-foreground transition-colors hover:border-accent-blue/40 focus:border-accent-blue focus:outline-none"
+          className="w-full cursor-pointer appearance-none rounded-xl border-2 border-border bg-background/60 px-4 py-3 text-sm font-semibold text-foreground shadow-[inset_0_2px_0_0_rgba(0,0,0,0.25)] transition-all hover:border-accent-green/50 focus:border-accent-green focus:outline-none focus:ring-2 focus:ring-accent-green/30"
         >
           {PATCH_FORMATS.map((format) => (
             <option key={format} value={format} className="bg-card">
@@ -26,7 +26,7 @@ export default function FormatSelector({ value, onChange }: FormatSelectorProps)
         </select>
         <span
           aria-hidden
-          className="pointer-events-none absolute right-3 top-1/2 -translate-y-1/2 text-muted"
+          className="pointer-events-none absolute right-4 top-1/2 -translate-y-1/2 text-accent-green"
         >
           ▾
         </span>

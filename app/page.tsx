@@ -9,6 +9,8 @@ import GbaEmulatorCta from "@/components/ui/GbaEmulatorCta";
 import AdSlot from "@/components/ads/AdSlot";
 import SectionHeading from "@/components/ui/SectionHeading";
 import BackgroundGlow from "@/components/ui/BackgroundGlow";
+import PatchHero from "@/components/ui/PatchHero";
+import CardArt, { type CardArtAccent, type CardArtName } from "@/components/ui/CardArt";
 import { TrustBadge } from "@/components/ui/TrustBadge";
 import { FormatBadge, FormatChip, FORMAT_KEYS } from "@/components/ui/FormatBadge";
 import { ButtonLink } from "@/components/ui/Button";
@@ -76,21 +78,27 @@ const pokemonHacks = [
   { name: "Gaia", base: "FireRed", type: "UPS" },
 ];
 
-const steps = [
+const steps: { title: string; description: string; icon: React.ReactNode; art: CardArtName; accent: CardArtAccent }[] = [
   {
     title: "Choose your original ROM",
     description: "Select your own legally-dumped ROM backup from your device.",
     icon: <IconCartridge />,
+    art: "cartridge",
+    accent: "green",
   },
   {
     title: "Add the patch file",
     description: "Select the IPS, UPS, BPS, or xdelta patch you want to apply.",
     icon: <IconPatchFile />,
+    art: "patch",
+    accent: "blue",
   },
   {
     title: "Download the patched output",
     description: "Generated entirely in your browser, ready to load in your emulator.",
     icon: <IconDownloadTray />,
+    art: "download",
+    accent: "purple",
   },
 ];
 
@@ -137,12 +145,12 @@ export default function HomePage() {
       <section className="container-page relative">
         <BackgroundGlow />
 
-        <div className="grid gap-10 lg:grid-cols-[1.1fr_0.9fr] lg:items-center">
-          <div className="flex flex-col gap-5 text-center lg:text-left">
-            <h1 className="text-4xl font-extrabold tracking-tight text-foreground sm:text-5xl">
-              ROM <span className="bg-gradient-to-r from-accent-green to-accent-blue bg-clip-text text-transparent">Patcher</span>
+        <div className="grid gap-10 lg:grid-cols-[1.15fr_0.85fr] lg:items-center">
+          <div className="flex flex-col gap-6 text-center lg:text-left">
+            <h1 className="text-5xl font-bold tracking-tight text-foreground sm:text-6xl lg:text-7xl">
+              ROM <span className="hero-shimmer">Patcher</span>
             </h1>
-            <p className="max-w-xl text-balance text-muted sm:text-lg">
+            <p className="max-w-xl text-balance text-muted sm:text-lg lg:max-w-lg">
               Apply IPS, UPS, BPS, and xdelta patches to your ROM files in seconds — entirely in
               your browser. Nothing you select is ever uploaded to {siteConfig.domain}.
             </p>
@@ -152,34 +160,41 @@ export default function HomePage() {
               <TrustBadge icon={<IconLayers />} label="IPS / UPS / BPS / XDelta" />
               <TrustBadge icon={<IconSmartphone />} label="Mobile friendly" />
             </div>
-          </div>
 
-          <div className="glow-border hidden rounded-2xl lg:block">
-            <div className="card flex flex-col gap-5 rounded-2xl p-6">
-              <div className="flex items-center justify-between text-xs font-medium text-muted">
-                <span className="flex items-center gap-1.5 text-accent-green">
-                  <IconCartridge className="h-4 w-4" /> ROM
-                </span>
-                <IconArrowRight className="h-4 w-4 text-border" />
-                <span className="flex items-center gap-1.5 text-accent-blue">
-                  <IconPatchFile className="h-4 w-4" /> Patch
-                </span>
-                <IconArrowRight className="h-4 w-4 text-border" />
-                <span className="flex items-center gap-1.5 text-purple-300">
-                  <IconDownloadTray className="h-4 w-4" /> Output
-                </span>
+            <div className="retro-window hidden max-w-xl lg:block">
+              <div className="retro-titlebar">
+                <span aria-hidden className="retro-dot bg-rose-400" />
+                <span aria-hidden className="retro-dot bg-amber-300" />
+                <span aria-hidden className="retro-dot bg-accent-green" />
               </div>
-              <div className="h-px bg-border" />
-              <div className="flex flex-wrap gap-2">
-                {FORMAT_KEYS.map((format) => (
-                  <FormatChip key={format} format={format} />
-                ))}
+              <div className="flex flex-col gap-4 p-5">
+                <div className="flex items-center justify-between text-xs font-medium text-muted">
+                  <span className="flex items-center gap-1.5 text-sm text-accent-green">
+                    <IconCartridge className="h-4 w-4" /> ROM
+                  </span>
+                  <IconArrowRight className="h-4 w-4 text-border" />
+                  <span className="flex items-center gap-1.5 text-sm text-accent-blue">
+                    <IconPatchFile className="h-4 w-4" /> Patch
+                  </span>
+                  <IconArrowRight className="h-4 w-4 text-border" />
+                  <span className="flex items-center gap-1.5 text-sm text-purple-300">
+                    <IconDownloadTray className="h-4 w-4" /> Output
+                  </span>
+                </div>
+                <div className="pixel-rule" />
+                <div className="flex flex-wrap gap-2">
+                  {FORMAT_KEYS.map((format) => (
+                    <FormatChip key={format} format={format} />
+                  ))}
+                </div>
+                <p className="text-xs text-muted">
+                  Every format is read and applied entirely on-device — nothing leaves your browser.
+                </p>
               </div>
-              <p className="text-xs text-muted">
-                Every format is read and applied entirely on-device — nothing leaves your browser.
-              </p>
             </div>
           </div>
+
+          <PatchHero className="max-w-[280px] sm:max-w-[360px] lg:max-w-[420px]" />
         </div>
 
         <div className="mt-10 flex flex-col gap-6">
@@ -192,7 +207,7 @@ export default function HomePage() {
       <div className="container-page flex flex-col gap-16">
         <section className="flex flex-col gap-4">
           <SectionHeading icon={<IconInfo />} title="What Is a ROM Patcher?" accent="blue" />
-          <div className="rounded-xl border-l-4 border-accent-blue/40 bg-card/40 p-5">
+          <div className="pixel-card border-l-4 border-l-accent-blue p-5">
             <p className="max-w-3xl text-muted">
               A ROM patcher applies a set of binary differences (a &ldquo;patch&rdquo;) to an
               original ROM file, producing a modified version — commonly used for fan
@@ -207,28 +222,27 @@ export default function HomePage() {
           <SectionHeading icon={<IconLayers />} title="How It Works" accent="green" />
           <div className="grid gap-4 sm:grid-cols-3">
             {steps.map((step, index) => (
-              <div
-                key={step.title}
-                className="card group flex flex-col gap-3 rounded-xl p-5 transition-all hover:-translate-y-1 hover:border-accent-green/40 hover:shadow-lg hover:shadow-accent-green/5"
-              >
-                <div className="flex items-center gap-3">
-                  <span className="flex h-8 w-8 flex-none items-center justify-center rounded-full bg-gradient-to-br from-accent-green to-accent-blue text-xs font-bold text-background">
+              <div key={step.title} className="pixel-card pixel-hover group flex flex-col overflow-hidden">
+                <div className="relative">
+                  <CardArt name={step.art} accent={step.accent} className="h-36" />
+                  <span className="absolute left-4 top-4 flex h-9 w-9 items-center justify-center rounded-xl bg-gradient-to-br from-accent-green to-accent-blue text-base font-extrabold text-background shadow-[0_6px_16px_-4px_rgba(57,224,127,0.6)]">
                     {index + 1}
                   </span>
-                  <span className="text-accent-blue [&>svg]:h-5 [&>svg]:w-5">{step.icon}</span>
                 </div>
-                <p className="text-sm font-semibold text-foreground">{step.title}</p>
-                <p className="text-sm text-muted">{step.description}</p>
+                <div className="flex flex-col gap-1.5 p-5">
+                  <p className="text-lg font-bold text-foreground">{step.title}</p>
+                  <p className="text-sm leading-relaxed text-muted">{step.description}</p>
+                </div>
               </div>
             ))}
           </div>
         </section>
 
-        <div className="h-px w-full bg-gradient-to-r from-transparent via-border to-transparent" />
+        <div className="pixel-rule" />
 
         <section className="flex flex-col gap-4">
           <SectionHeading icon={<IconPatchFile />} title="Supported ROM Patch Formats" accent="blue" />
-          <div className="grid gap-3 sm:grid-cols-3">
+          <div className="grid grid-cols-2 gap-3 sm:grid-cols-3 sm:gap-4">
             {FORMAT_KEYS.map((format) => {
               const href = FORMAT_PAGE_LINKS[format];
               const badge = <FormatBadge format={format} />;
@@ -245,7 +259,7 @@ export default function HomePage() {
 
         <AdSlot label="In-content ad slot" />
 
-        <section className="overflow-hidden rounded-2xl border border-purple-500/25 bg-gradient-to-br from-purple-500/10 via-card to-accent-blue/5 p-6 sm:p-8">
+        <section className="retro-window overflow-hidden bg-gradient-to-br from-purple-500/15 via-card to-accent-blue/10 p-6 sm:p-8">
           <div className="flex flex-col gap-6">
             <SectionHeading icon={<IconGamepad />} title="Pokemon ROM Patcher" accent="purple" />
             <p className="max-w-3xl text-muted">
@@ -253,10 +267,10 @@ export default function HomePage() {
               overhauls to full new regions. PatchMyROM is built with Pokemon ROM hacks in mind.
             </p>
 
-            <div className="overflow-x-auto rounded-xl border border-border">
+            <div className="overflow-x-auto rounded-lg border-2 border-border bg-background/40">
               <table className="w-full min-w-[420px] border-collapse text-left text-sm">
                 <thead>
-                  <tr className="border-b border-border bg-card/60 text-muted">
+                  <tr className="border-b-2 border-border bg-card/80 text-accent-green">
                     <th className="px-4 py-3 font-medium">ROM Hack</th>
                     <th className="px-4 py-3 font-medium">Base Game</th>
                     <th className="px-4 py-3 font-medium">Patch Type</th>
@@ -283,7 +297,7 @@ export default function HomePage() {
           </div>
         </section>
 
-        <section className="rounded-2xl border border-purple-500/20 bg-purple-500/5 p-6 sm:p-8">
+        <section className="pixel-card bg-purple-500/5 p-6 sm:p-8">
           <div className="flex flex-col gap-4">
             <SectionHeading icon={<IconGamepad />} title="GBA ROM Patcher" accent="purple" />
             <p className="max-w-3xl text-muted">
@@ -318,7 +332,7 @@ export default function HomePage() {
           </div>
         </section>
 
-        <div className="h-px w-full bg-gradient-to-r from-transparent via-border to-transparent" />
+        <div className="pixel-rule" />
 
         <section className="flex flex-col gap-4">
           <SectionHeading icon={<IconLayers />} title="Related Guides" accent="blue" />

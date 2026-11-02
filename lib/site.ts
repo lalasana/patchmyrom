@@ -6,6 +6,8 @@ export const siteConfig = {
   url: "https://patchmyrom.com",
   domain: "patchmyrom.com",
   ogImage: "/og-image.png",
+  logo: "/brand/patchmyrom-logo.webp",
+  logoSquare: "/brand/icon-512.png",
   keywords: [
     "ROM patcher",
     "IPS patcher",

@@ -40,9 +40,25 @@ const FORMAT_META: Record<FormatKey, FormatMeta> = {
 export function FormatBadge({ format }: { format: FormatKey }) {
   const meta = FORMAT_META[format];
   return (
-    <div className={`rounded-lg border px-3.5 py-3 ${meta.classes}`}>
-      <span className="text-sm font-bold">{format}</span>
-      <p className="mt-0.5 text-xs text-muted">{meta.description}</p>
+    <div
+      className={`group relative h-full overflow-hidden rounded-2xl border px-4 py-4 shadow-[0_14px_30px_-20px_rgba(0,0,0,0.9)] transition-colors ${meta.classes}`}
+    >
+      {/* decorative "diff" lines */}
+      <svg
+        aria-hidden
+        viewBox="0 0 80 56"
+        className="pointer-events-none absolute -right-2 -top-1 h-12 w-16 opacity-30 sm:h-16 sm:w-24 transition-opacity group-hover:opacity-60"
+        fill="currentColor"
+      >
+        <rect x="4" y="6" width="8" height="8" rx="2" />
+        <rect x="18" y="8" width="52" height="4" rx="2" />
+        <rect x="4" y="22" width="8" height="8" rx="2" opacity="0.6" />
+        <rect x="18" y="24" width="38" height="4" rx="2" opacity="0.6" />
+        <rect x="4" y="38" width="8" height="8" rx="2" />
+        <rect x="18" y="40" width="60" height="4" rx="2" />
+      </svg>
+      <span className="relative text-xl font-extrabold tracking-tight">{format}</span>
+      <p className="relative mt-1 text-xs leading-relaxed text-muted">{meta.description}</p>
     </div>
   );
 }
@@ -51,7 +67,7 @@ export function FormatChip({ format }: { format: FormatKey }) {
   const meta = FORMAT_META[format];
   return (
     <span
-      className={`inline-flex items-center rounded-full border px-2.5 py-1 text-xs font-semibold ${meta.classes}`}
+      className={`inline-flex items-center rounded-md border px-2.5 py-1 text-xs font-bold ${meta.classes}`}
     >
       {format}
     </span>

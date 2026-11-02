@@ -1,17 +1,17 @@
 @import "tailwindcss";
 
 :root {
-  --background: #0b1020;
-  --background-alt: #0d1428;
-  --card: #111827;
-  --card-hover: #141d31;
-  --border: #243047;
-  --accent-green: #22c55e;
+  --background: #0a0b1c;
+  --background-alt: #0f1129;
+  --card: #12142e;
+  --card-hover: #181b3d;
+  --border: #2a2e57;
+  --accent-green: #39e07f;
   --accent-green-dark: #16a34a;
-  --accent-blue: #38bdf8;
+  --accent-blue: #4cc9f0;
   --accent-purple: #a78bfa;
   --foreground: #f8fafc;
-  --muted: #cbd5e1;
+  --muted: #c4cbe0;
 }
 
 @theme inline {
@@ -30,22 +30,90 @@
   --font-mono: var(--font-geist-mono);
 }
 
+html {
+  scroll-behavior: smooth;
+  /* dark native controls: scrollbars, select popups, form fields */
+  color-scheme: dark;
+  scrollbar-color: #2f3566 #0a0b1c;
+}
+
 body {
   background-color: var(--background);
   background-image:
-    radial-gradient(ellipse 70% 45% at 18% 0%, rgba(34, 197, 94, 0.10), transparent 60%),
-    radial-gradient(ellipse 70% 45% at 85% 0%, rgba(56, 189, 248, 0.12), transparent 60%),
-    linear-gradient(180deg, var(--background-alt) 0%, var(--background) 40%);
-  background-attachment: fixed, fixed, fixed;
+    radial-gradient(1200px 700px at 12% -8%, rgba(57, 224, 127, 0.14), transparent 62%),
+    radial-gradient(1100px 700px at 92% -6%, rgba(76, 201, 240, 0.15), transparent 62%),
+    radial-gradient(900px 600px at 50% 105%, rgba(167, 139, 250, 0.14), transparent 65%),
+    linear-gradient(180deg, #0c0e26 0%, var(--background) 45%, #080918 100%);
+  background-attachment: fixed;
   color: var(--foreground);
+  /* decorative animated elements may start outside the viewport; never let them add a horizontal scrollbar */
+  overflow-x: clip;
 }
 
+::selection {
+  background: rgba(57, 224, 127, 0.35);
+  color: #fff;
+}
+
+/* Fine dot grid, fading out away from the top */
 .bg-grid-pattern {
-  background-image:
-    linear-gradient(to right, rgba(248, 250, 252, 0.035) 1px, transparent 1px),
-    linear-gradient(to bottom, rgba(248, 250, 252, 0.035) 1px, transparent 1px);
-  background-size: 34px 34px;
-  mask-image: radial-gradient(ellipse 80% 60% at 50% 0%, black 40%, transparent 100%);
+  background-image: radial-gradient(rgba(167, 139, 250, 0.22) 1px, transparent 1.4px);
+  background-size: 28px 28px;
+  mask-image: radial-gradient(ellipse 85% 65% at 50% 0%, black 30%, transparent 100%);
+}
+
+/* Slow-drifting aurora blobs (cheap: gradients + transform only, no blur filter) */
+.bg-aurora {
+  overflow: hidden;
+}
+
+.bg-aurora::before,
+.bg-aurora::after {
+  content: "";
+  position: absolute;
+  border-radius: 9999px;
+  will-change: transform;
+}
+
+.bg-aurora::before {
+  width: 70vw;
+  height: 70vw;
+  max-width: 900px;
+  max-height: 900px;
+  top: -25vw;
+  left: -12vw;
+  background: radial-gradient(circle, rgba(57, 224, 127, 0.20), transparent 65%);
+  animation: aurora-a 28s ease-in-out infinite alternate;
+}
+
+.bg-aurora::after {
+  width: 60vw;
+  height: 60vw;
+  max-width: 800px;
+  max-height: 800px;
+  top: 8vh;
+  right: -14vw;
+  background: radial-gradient(circle, rgba(76, 201, 240, 0.18), rgba(167, 139, 250, 0.10) 45%, transparent 68%);
+  animation: aurora-b 34s ease-in-out infinite alternate;
+}
+
+/* Subtle film grain for depth */
+.bg-noise {
+  opacity: 0.05;
+  mix-blend-mode: overlay;
+  background-image: url("data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' width='160' height='160'><filter id='n'><feTurbulence type='fractalNoise' baseFrequency='0.9' numOctaves='2' stitchTiles='stitch'/><feColorMatrix values='0 0 0 0 1  0 0 0 0 1  0 0 0 0 1  0 0 0 0.9 0'/></filter><rect width='100%' height='100%' filter='url(%23n)'/></svg>");
+}
+
+@keyframes aurora-a {
+  to {
+    transform: translate(10vw, 8vh) scale(1.12);
+  }
+}
+
+@keyframes aurora-b {
+  to {
+    transform: translate(-12vw, 10vh) scale(1.1);
+  }
 }
 
 .container-page {
@@ -55,14 +123,6 @@ body {
   margin-right: auto;
   padding-left: 1.25rem;
   padding-right: 1.25rem;
-}
-
-@layer components {
-  .card {
-    background: var(--card);
-    border: 1px solid var(--border);
-    border-radius: 0.75rem;
-  }
 }
 
 .glow-border {
@@ -75,7 +135,13 @@ body {
   inset: -1px;
   border-radius: inherit;
   padding: 1px;
-  background: linear-gradient(135deg, rgba(34, 197, 94, 0.55), rgba(56, 189, 248, 0.4), transparent 70%);
+  background: linear-gradient(
+    135deg,
+    rgba(57, 224, 127, 0.65),
+    rgba(76, 201, 240, 0.45),
+    rgba(167, 139, 250, 0.4) 60%,
+    transparent 85%
+  );
   -webkit-mask: linear-gradient(#fff 0 0) content-box, linear-gradient(#fff 0 0);
   -webkit-mask-composite: xor;
   mask-composite: exclude;
@@ -111,8 +177,9 @@ body {
   box-shadow: inset 0 -2px 0 rgba(0, 0, 0, 0.3);
 }
 
-/* ---------- Pixel cards (art-headed cards used by the redesigned components) ---------- */
+/* ---------- Cards (shared by .card and .pixel-card) ---------- */
 @layer components {
+  .card,
   .pixel-card {
     position: relative;
     border-radius: 1rem;
@@ -131,6 +198,7 @@ body {
   }
 
   /* gradient hairline that lights up on hover */
+  .card::before,
   .pixel-card::before {
     content: "";
     position: absolute;
@@ -146,7 +214,9 @@ body {
     pointer-events: none;
   }
 
+  a.card:hover,
   a.pixel-card:hover,
+  .card.pixel-hover:hover,
   .pixel-card.pixel-hover:hover {
     transform: translateY(-5px);
     box-shadow:
@@ -155,7 +225,9 @@ body {
       0 0 0 1px rgba(57, 224, 127, 0.05);
   }
 
+  a.card:hover::before,
   a.pixel-card:hover::before,
+  .card.pixel-hover:hover::before,
   .pixel-card.pixel-hover:hover::before {
     opacity: 1;
   }
@@ -175,6 +247,7 @@ body {
     opacity: 0.6;
   }
 
+  a.card:hover .card-art svg,
   a.pixel-card:hover .card-art svg,
   .pixel-hover:hover .card-art svg {
     transform: scale(1.06) rotate(-1deg);
@@ -192,6 +265,171 @@ body {
   background-image: linear-gradient(to right, var(--border) 0 8px, transparent 8px 16px);
   background-size: 16px 4px;
   opacity: 0.9;
+}
+
+/* ---------- Hero text ---------- */
+.hero-shimmer {
+  background-image: linear-gradient(100deg, var(--accent-green) 0%, var(--accent-blue) 45%, var(--accent-purple) 70%, var(--accent-green) 100%);
+  background-size: 220% 100%;
+  -webkit-background-clip: text;
+  background-clip: text;
+  -webkit-text-fill-color: transparent;
+  color: transparent;
+  animation: shimmer 6s linear infinite;
+}
+
+/* ---------- Pixel float / twinkle for decorative sprites ---------- */
+.pixel-float {
+  animation: pixel-float 4s steps(8) infinite;
+}
+
+.pixel-float-slow {
+  animation: pixel-float 6s steps(10) infinite reverse;
+}
+
+.pixel-twinkle {
+  animation: blink 2.2s steps(2, start) infinite;
+}
+
+@keyframes shimmer {
+  to {
+    background-position: -220% 0;
+  }
+}
+
+@keyframes blink {
+  to {
+    visibility: hidden;
+  }
+}
+
+@keyframes pixel-float {
+  0%,
+  100% {
+    transform: translateY(0);
+  }
+  50% {
+    transform: translateY(-10px);
+  }
+}
+
+/* ---------- Hero illustration (cartridge + patch + orbiting formats) ---------- */
+.hero-orbit {
+  animation: hero-spin 36s linear infinite;
+}
+
+.hero-orbit-chip {
+  animation: hero-spin 36s linear infinite reverse;
+}
+
+.hero-float {
+  animation: hero-float 6s ease-in-out infinite;
+}
+
+.hero-glow {
+  animation: hero-glow 6s ease-in-out infinite;
+}
+
+/* Resting state (also the reduced-motion state) = patch snapped into place */
+.hero-patch {
+  animation: hero-patch 6s cubic-bezier(0.22, 1, 0.36, 1) infinite;
+}
+
+.hero-flash {
+  opacity: 0;
+  animation: hero-flash 6s ease-out infinite;
+}
+
+.hero-twinkle {
+  animation: hero-twinkle 3s ease-in-out infinite;
+}
+
+.hero-twinkle-b {
+  animation: hero-twinkle 3.6s ease-in-out 0.8s infinite;
+}
+
+.hero-twinkle-c {
+  animation: hero-twinkle 2.8s ease-in-out 1.4s infinite;
+}
+
+@keyframes hero-spin {
+  to {
+    transform: rotate(360deg);
+  }
+}
+
+@keyframes hero-float {
+  0%,
+  100% {
+    transform: translateY(0) rotate(-1.5deg);
+  }
+  50% {
+    transform: translateY(-12px) rotate(1.5deg);
+  }
+}
+
+@keyframes hero-glow {
+  0%,
+  100% {
+    opacity: 0.7;
+    transform: scale(1);
+  }
+  50% {
+    opacity: 1;
+    transform: scale(1.08);
+  }
+}
+
+@keyframes hero-patch {
+  0% {
+    opacity: 0;
+    transform: translate(90%, -120%) rotate(28deg) scale(0.6);
+  }
+  14% {
+    opacity: 1;
+  }
+  40% {
+    transform: translate(0, 0) rotate(0) scale(1.18);
+  }
+  46% {
+    transform: translate(0, 0) rotate(0) scale(1);
+  }
+  86% {
+    opacity: 1;
+    transform: translate(0, 0) rotate(0) scale(1);
+  }
+  100% {
+    opacity: 0;
+    transform: translate(0, 0) rotate(0) scale(1);
+  }
+}
+
+@keyframes hero-flash {
+  0%,
+  38% {
+    opacity: 0;
+    transform: scale(0.5);
+  }
+  42% {
+    opacity: 0.9;
+  }
+  60%,
+  100% {
+    opacity: 0;
+    transform: scale(2.4);
+  }
+}
+
+@keyframes hero-twinkle {
+  0%,
+  100% {
+    opacity: 0.25;
+    transform: scale(0.7) rotate(0);
+  }
+  50% {
+    opacity: 1;
+    transform: scale(1.15) rotate(20deg);
+  }
 }
 
 /* ---------- Inner page hero ---------- */
@@ -226,8 +464,60 @@ body {
   }
 }
 
+.result-ready {
+  animation: result-glow 2.6s ease-in-out infinite;
+}
+
+@keyframes result-glow {
+  0%,
+  100% {
+    box-shadow: 0 0 0 1px rgba(57, 224, 127, 0.25), 0 0 34px -12px rgba(57, 224, 127, 0.55);
+  }
+  50% {
+    box-shadow: 0 0 0 1px rgba(57, 224, 127, 0.5), 0 0 52px -8px rgba(57, 224, 127, 0.8);
+  }
+}
+
+/* ---------- Footer skyline ---------- */
+.pixel-skyline {
+  height: 28px;
+  background:
+    linear-gradient(to top, var(--card) 0 100%) bottom / 100% 6px no-repeat,
+    repeating-linear-gradient(to right, var(--card) 0 24px, transparent 24px 40px) bottom / 100% 16px no-repeat,
+    repeating-linear-gradient(to right, transparent 0 12px, var(--card) 12px 36px, transparent 36px 64px) bottom / 100% 24px no-repeat,
+    repeating-linear-gradient(to right, var(--card) 0 8px, transparent 8px 56px) bottom / 100% 28px no-repeat;
+  opacity: 0.8;
+}
+
 @media (prefers-reduced-motion: reduce) {
-  .progress-stripes {
+  .bg-aurora::before,
+  .bg-aurora::after,
+  .progress-stripes,
+  .result-ready,
+  .hero-orbit,
+  .hero-orbit-chip,
+  .hero-float,
+  .hero-glow,
+  .hero-patch,
+  .hero-flash,
+  .hero-twinkle,
+  .hero-twinkle-b,
+  .hero-twinkle-c,
+  .hero-shimmer,
+  .pixel-float,
+  .pixel-float-slow,
+  .pixel-twinkle {
     animation: none !important;
+  }
+
+  html {
+    scroll-behavior: auto;
+  }
+
+  *,
+  *::before,
+  *::after {
+    transition-duration: 0.01ms !important;
+    animation-duration: 0.01ms !important;
   }
 }

@@ -1,3 +1,4 @@
+import PageHero from "@/components/ui/PageHero";
 import type { Metadata } from "next";
 import Breadcrumbs from "@/components/ui/Breadcrumbs";
 import RelatedGuides from "@/components/ui/RelatedGuides";
@@ -56,19 +57,19 @@ export default function HowToPatchPage() {
         items={[{ href: "/how-to-patch-pokemon-rom-hacks", label: "How to Patch Pokemon ROM Hacks" }]}
       />
 
-      <div className="flex flex-col gap-3">
-        <h1 className="text-3xl font-bold text-foreground sm:text-4xl">
+      <PageHero art="guide" accent="blue">
+<h1 className="text-3xl font-bold text-foreground sm:text-4xl">
           How to Patch Pokemon ROM Hacks
         </h1>
         <p className="max-w-2xl text-muted sm:text-lg">
           A straightforward, step-by-step guide to safely patching Pokemon ROM hacks.
         </p>
-      </div>
+      </PageHero>
 
       <ol className="flex flex-col gap-4">
         {steps.map((step, index) => (
-          <li key={step.title} className="card flex gap-4 px-5 py-5">
-            <span className="flex h-8 w-8 flex-none items-center justify-center rounded-full bg-gradient-to-br from-accent-green to-accent-blue text-xs font-bold text-background">
+          <li key={step.title} className="card flex gap-4 p-5">
+            <span className="flex h-10 w-10 flex-none items-center justify-center rounded-xl bg-gradient-to-br from-accent-green to-accent-blue text-base font-extrabold text-background shadow-[0_6px_16px_-4px_rgba(57,224,127,0.6)]">
               {index + 1}
             </span>
             <div>
@@ -85,7 +86,7 @@ export default function HowToPatchPage() {
       />
 
       <section className="flex flex-col gap-4">
-        <h2 className="text-2xl font-semibold text-foreground">Related Guides</h2>
+        <h2 className="text-2xl font-bold tracking-tight text-foreground sm:text-3xl">Related Guides</h2>
         <RelatedGuides
           items={[
             {

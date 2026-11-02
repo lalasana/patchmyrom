@@ -1,3 +1,5 @@
+import PageHero from "@/components/ui/PageHero";
+import { BrandArt } from "@/components/ui/CardArt";
 import type { Metadata } from "next";
 import Link from "next/link";
 import Breadcrumbs from "@/components/ui/Breadcrumbs";
@@ -123,8 +125,8 @@ export default function NesRomPatcherPage() {
       <JsonLd data={howToJsonLd} />
       <Breadcrumbs items={[{ href: "/nes-rom-patcher", label: "NES ROM Patcher" }]} />
 
-      <div className="flex flex-col gap-3">
-        <h1 className="text-3xl font-bold text-foreground sm:text-4xl">NES ROM Patcher</h1>
+      <PageHero art="cartridge" accent="amber">
+<h1 className="text-3xl font-bold text-foreground sm:text-4xl">NES ROM Patcher</h1>
         <p className="max-w-2xl text-muted sm:text-lg">
           NES ROM hacking is where IPS came from in the first place. This tool applies those
           patches the same way it handles everything newer — locally, in your browser.
@@ -132,11 +134,11 @@ export default function NesRomPatcherPage() {
         <div>
           <FormatChip format="IPS" />
         </div>
-      </div>
+      </PageHero>
 
       <section className="flex flex-col gap-4">
         <SectionHeading icon={<IconInfo />} title="The Format That Started It All" accent="green" />
-        <div className="rounded-xl border-l-4 border-accent-green/40 bg-card/40 p-5">
+        <div className="card border-l-4 border-l-accent-green p-5">
           <p className="max-w-3xl text-muted">
             Long before Game Boy Advance or Nintendo DS hacking existed, NES and SNES translation
             groups needed a way to share their work without redistributing copyrighted ROMs. IPS
@@ -151,8 +153,8 @@ export default function NesRomPatcherPage() {
         <SectionHeading icon={<IconLayers />} title="Step-by-Step" accent="blue" />
         <div className="grid gap-4 sm:grid-cols-2">
           {steps.map((step, index) => (
-            <div key={step.title} className="card flex gap-4 rounded-xl p-5">
-              <span className="flex h-8 w-8 flex-none items-center justify-center rounded-full bg-gradient-to-br from-accent-green to-accent-blue text-xs font-bold text-background">
+            <div key={step.title} className="card flex gap-4 p-5">
+              <span className="flex h-10 w-10 flex-none items-center justify-center rounded-xl bg-gradient-to-br from-accent-green to-accent-blue text-base font-extrabold text-background shadow-[0_6px_16px_-4px_rgba(57,224,127,0.6)]">
                 {index + 1}
               </span>
               <div>
@@ -232,7 +234,8 @@ export default function NesRomPatcherPage() {
         />
       </section>
 
-      <div className="card flex flex-col items-center gap-3 rounded-2xl p-6 text-center">
+      <div className="card relative flex flex-col items-center gap-4 overflow-hidden rounded-3xl bg-gradient-to-br from-accent-green/10 via-card to-accent-blue/10 p-8 text-center">
+        <BrandArt className="h-20 w-20" />
         <p className="text-sm text-muted">
           Old format, same modern privacy guarantee — your ROM and patch stay on this device.
         </p>

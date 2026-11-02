@@ -94,7 +94,7 @@ export default function GbaEmulatorCta({
   return (
     <aside
       aria-label={`${GBA_EMULATOR_TITLE} for Android`}
-      className={`relative overflow-hidden rounded-xl border border-accent-blue/30 bg-gradient-to-br from-accent-blue/10 via-card to-accent-green/5 p-4 sm:p-5 ${className}`}
+      className={`relative overflow-hidden rounded-xl border-2 border-accent-blue/40 bg-gradient-to-br from-accent-blue/15 via-card to-accent-green/10 p-4 shadow-[4px_4px_0_0_rgba(0,0,0,0.4)] sm:p-5 ${className}`}
     >
       <div className="relative flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between sm:gap-6">
         <div className="flex min-w-0 items-start gap-3 text-left sm:gap-4">
