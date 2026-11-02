@@ -274,6 +274,7 @@
     var p = 4;
     var limit = u8.length - 12;
     var metaLength = 0;
+    var sizes = [0, 0];
     for (var v = 0; v < headerValues; v++) {
       var value = 0;
       var shift = 1;
@@ -284,11 +285,67 @@
         if (b & 0x80) break;
         shift *= 128;
         value += shift;
+        if (kind === "BPS" && shift > BPS_MAX_NUMBER) return bpsTooLarge(); // also keeps the arithmetic finite
       }
+      if (kind === "BPS" && v < 2) sizes[v] = value;
       if (kind === "BPS" && v === 2) metaLength = value;
     }
-    if (kind === "BPS" && p + metaLength > limit) return damaged;
+    if (kind === "BPS") {
+      if (sizes[0] > BPS_MAX_NUMBER || sizes[1] > BPS_MAX_NUMBER) return bpsTooLarge();
+      if (p + metaLength > limit) return damaged;
+      return preflightBpsActions(u8, p + metaLength, limit, damaged);
+    }
 
+    return { ok: true };
+  }
+
+  // The vendored BPS parser verifies the patch by re-exporting it, and its variable-length-number encoder
+  // (BPS_getVLVLen) uses 32-bit shifts: a value of 2^31 or more turns negative and the loop never ends,
+  // freezing the worker. These are the exact limits below which it terminates; a real ROM patch needs none above them.
+  var BPS_MAX_NUMBER = 2147483647; // source/target size, and the raw action and offset numbers (2^31 - 1)
+  var BPS_MAX_ACTION_LENGTH = 536870912; // (length - 1) << 2 must stay below 2^31: 512 MiB per action
+
+  function bpsTooLarge() {
+    return {
+      ok: false,
+      code: "patch-corrupt",
+      message:
+        "This BPS patch file is damaged or incomplete: it declares a size larger than 2 GB, which is more than PatchMyROM can handle. Download the patch again from its original source, and don't edit it or transfer it as text.",
+    };
+  }
+
+  /** Walks the BPS action stream exactly as the vendored parser does, refusing numbers it can't survive. */
+  function preflightBpsActions(u8, start, limit, damaged) {
+    var p = start;
+    function readNumber() {
+      var value = 0;
+      var shift = 1;
+      for (;;) {
+        if (p >= limit) return -1;
+        var b = u8[p++];
+        value += (b & 0x7f) * shift;
+        if (b & 0x80) return value;
+        shift *= 128;
+        value += shift;
+        if (shift > BPS_MAX_NUMBER) return Infinity;
+      }
+    }
+    while (p < limit) {
+      var data = readNumber();
+      if (data < 0) return damaged;
+      if (data > BPS_MAX_NUMBER) return bpsTooLarge();
+      var type = data % 4;
+      var length = Math.floor(data / 4) + 1;
+      if (length > BPS_MAX_ACTION_LENGTH) return bpsTooLarge();
+      if (type === 1) {
+        p += length; // TargetRead carries its own bytes
+        if (p > limit) return damaged;
+      } else if (type === 2 || type === 3) {
+        var offset = readNumber(); // SourceCopy / TargetCopy relative offset
+        if (offset < 0) return damaged;
+        if (offset > BPS_MAX_NUMBER) return bpsTooLarge();
+      }
+    }
     return { ok: true };
   }
 
