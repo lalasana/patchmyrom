@@ -68,8 +68,11 @@ export default function SnesRomPatcherPage() {
               Headers are recognised on .sfc, .smc, .swc and .fig files.
             </p>
             <p>
-              IPS has no checksum to decide with, so the patcher applies it to exactly the file you give it.
-              If a hack&apos;s readme says it needs a headerless ROM, give it a headerless one.
+              <strong className="text-foreground">IPS patches need the right header state.</strong> IPS has
+              no checksum to decide with, so the patcher applies it to exactly the file you give it and
+              never adds or removes a header. A patch made for a headered ROM needs your headered file
+              (512 extra bytes); a patch made for a headerless ROM needs a headerless one. The hack&apos;s
+              readme says which; if it does not match your file, the result is silently wrong.
             </p>
           </>
         ),
