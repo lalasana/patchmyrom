@@ -96,7 +96,7 @@ export default function PatchHero({ className = "" }: { className?: string }) {
         {/* brand mark on the label */}
         <div className="absolute left-[15%] top-[21%] flex h-[49%] w-[70%] items-center justify-center">
           <Image
-            src="/brand/icon-512.png"
+            src="/brand/icon-512.webp"
             alt=""
             width={512}
             height={512}

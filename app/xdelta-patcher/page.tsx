@@ -1,23 +1,7 @@
-import PageHero from "@/components/ui/PageHero";
-import { BrandArt } from "@/components/ui/CardArt";
 import type { Metadata } from "next";
-import Link from "next/link";
-import Breadcrumbs from "@/components/ui/Breadcrumbs";
-import RelatedGuides from "@/components/ui/RelatedGuides";
-import TroubleshootingCard from "@/components/ui/TroubleshootingCard";
-import FaqAccordion from "@/components/ui/FaqAccordion";
-import SectionHeading from "@/components/ui/SectionHeading";
-import JsonLd from "@/components/seo/JsonLd";
-import { ButtonLink } from "@/components/ui/Button";
-import { FormatBadge } from "@/components/ui/FormatBadge";
-import {
-  IconInfo,
-  IconLayers,
-  IconAlertTriangle,
-  IconDatabase,
-  IconFileQuestion,
-  IconArrowRight,
-} from "@/components/ui/icons";
+import ToolPage from "@/components/tool/ToolPage";
+import InlineLink from "@/components/ui/InlineLink";
+import { IconInfo } from "@/components/ui/icons";
 import { buildPageMetadata } from "@/lib/seo";
 
 export const metadata: Metadata = buildPageMetadata({
@@ -27,237 +11,170 @@ export const metadata: Metadata = buildPageMetadata({
   path: "/xdelta-patcher",
 });
 
-const steps = [
-  {
-    title: "Have your base ROM ready",
-    body: "xdelta patches for something like an NDS game can mean waiting on a file that's tens or hundreds of megabytes — make sure you've got it before you start.",
-  },
-  {
-    title: "Get the .xdelta patch file",
-    body: "These are usually distributed as a single file. Double check it's meant for your exact ROM revision.",
-  },
-  {
-    title: "Load both files into the patcher",
-    body: "Large files take a moment to read — the tool shows real progress while it works through them.",
-  },
-  {
-    title: "Download the result",
-    body: "The patched ROM is assembled locally and offered as a normal download once it's done.",
-  },
-];
-
-const mistakes = [
-  {
-    problem: "Expecting xdelta to be ROM-hacking-specific",
-    solution:
-      "It isn't — xdelta is a general binary diff tool the ROM hacking community adopted because it handles large files well. That also means it doesn't carry ROM-specific conventions the way IPS or BPS do.",
-    icon: <IconInfo />,
-  },
-  {
-    problem: "Using a differently-dumped copy of a large ROM",
-    solution:
-      "Two dumps of the same game can still differ by a few bytes depending on the tool that created them. For big NDS files especially, use the exact source the patch author mentions.",
-    icon: <IconDatabase />,
-  },
-  {
-    problem: "Assuming every .xdelta file behaves the same way",
-    solution:
-      "xdelta patches can optionally use secondary compression on top of the diff itself, and the file extension doesn't tell you which kind you have. PatchMyROM handles uncompressed and LZMA-compressed patches (xdelta3's usual default) and tells you if it finds an older DJW or FGK one.",
-    icon: <IconFileQuestion />,
-  },
-];
-
-const troubleshooting = [
-  {
-    problem: "Patch is rejected for its \"secondary compression\"",
-    solution:
-      "Some xdelta encoders add an extra compression pass on top of the base diff. PatchMyROM supports uncompressed and LZMA-compressed xdelta patches. If it names DJW or FGK compression, ask the hack's author for a patch built with `xdelta3 -S none` (or `-S lzma`), or apply that patch with the official xdelta3 command-line tool.",
-    icon: <IconFileQuestion />,
-  },
-  {
-    problem: "It's taking a long time with no visible progress",
-    solution:
-      "Large NDS ROMs can run from around 32MB up past 512MB. Reading and hashing a file that size takes real time in a browser — that's expected, not a sign it's stuck.",
-    icon: <IconLayers />,
-  },
-  {
-    problem: "Patch applies but the game doesn't boot",
-    solution:
-      "Confirm your source ROM byte-for-byte matches what the patch was built against — xdelta diffs are extremely sensitive to any difference in the input file. Most xdelta patches carry a built-in checksum; when they do, PatchMyROM checks the result and refuses to hand over a ROM that fails it, telling you the ROM probably isn't the exact original.",
-    icon: <IconAlertTriangle />,
-  },
-];
-
-const faqItems = [
-  {
-    question: "Is xdelta a ROM hacking format like IPS or BPS?",
-    answer: "No — xdelta is a general-purpose binary diff tool. The ROM hacking community adopted it because it copes well with very large files, not because it was designed for ROMs specifically.",
-  },
-  {
-    question: "Why is xdelta used for Nintendo DS games specifically?",
-    answer: "NDS ROMs run much larger than earlier handheld games, often tens to hundreds of megabytes. Formats built for smaller ROMs either can't address that much data or become impractically large as diffs.",
-  },
-  {
-    question: "Why did my xdelta patch fail when others worked fine?",
-    answer: "The most common cause is a base ROM that doesn't match exactly. A less common cause is a patch built with DJW or FGK secondary compression, which PatchMyROM can't decode (uncompressed and LZMA patches are supported).",
-  },
-  {
-    question: "Does patching a huge ROM in a browser actually work?",
-    answer: "Yes, though it takes longer than a small GBA or SNES file. The trade-off for staying entirely client-side is that your browser does the same work a desktop tool would.",
-  },
-];
-
 export default function XdeltaPatcherPage() {
-  const howToJsonLd = {
-    "@context": "https://schema.org",
-    "@type": "HowTo",
-    name: "How to Apply an xdelta Patch",
-    description: "Steps to apply an xdelta (VCDIFF) patch file to a large ROM using a browser-based patcher.",
-    step: steps.map((step) => ({
-      "@type": "HowToStep",
-      name: step.title,
-      text: step.body,
-    })),
-  };
-
   return (
-    <div className="container-page flex flex-col gap-10 py-10 sm:py-14">
-      <JsonLd data={howToJsonLd} />
-      <Breadcrumbs items={[{ href: "/xdelta-patcher", label: "xdelta Patcher" }]} />
-
-      <PageHero art="xdelta" accent="amber">
-<h1 className="text-3xl font-bold text-foreground sm:text-4xl">xdelta Patcher</h1>
-        <p className="max-w-2xl text-muted sm:text-lg">
-          xdelta handles the ROMs other formats weren&apos;t built for — mainly large Nintendo DS
-          games. It runs here the same way everything else does: locally, in your browser.
+    <ToolPage
+      path="/xdelta-patcher"
+      breadcrumbLabel="xdelta Patcher"
+      art="xdelta"
+      accent="amber"
+      title="xdelta Patcher"
+      intro={
+        <p>
+          xdelta handles the ROMs other formats weren&apos;t built for, mainly large Nintendo DS games.
+          Apply your .xdelta file below; it runs locally in your browser like everything else here.
         </p>
-        <div>
-          <FormatBadge format="XDelta" />
-        </div>
-      </PageHero>
-
-      <section className="flex flex-col gap-4">
-        <SectionHeading icon={<IconInfo />} title="A Tool Borrowed From Outside ROM Hacking" accent="amber" />
-        <div className="rounded-xl border-l-4 border-amber-500/40 bg-card/40 p-5">
-          <p className="max-w-3xl text-muted">
-            Unlike IPS, UPS, or BPS, xdelta wasn&apos;t built for ROMs at all — it&apos;s a general binary
-            diff format used well beyond gaming. The ROM hacking community picked it up because
-            it scales to much bigger files without the diff itself becoming unreasonably large.
-            That&apos;s exactly the situation Nintendo DS ROMs create: they&apos;re an order of magnitude
-            bigger than the GBA and SNES games most other patch formats were designed around.
+      }
+      chips={["XDelta"]}
+      patcher={{
+        heading: "Apply an xdelta patch",
+        defaultFormat: "xdelta",
+        romLabel: "Original ROM file",
+        romHint: "Any console: the exact file the patch was made for",
+        patchHint: "Your .xdelta or .vcdiff patch",
+      }}
+      verify={
+        <>
+          <p>
+            xdelta diffs are extremely sensitive to the input file, but they do not record a checksum of the
+            ROM they expect. The{" "}
+            <InlineLink href="/patch-compatibility-checker">Patch Compatibility Checker</InlineLink>{" "}will
+            therefore report xdelta as one it cannot verify, and say so instead of guessing.
           </p>
-        </div>
-      </section>
-
-      <section className="flex flex-col gap-4">
-        <SectionHeading icon={<IconLayers />} title="Step-by-Step" accent="blue" />
-        <div className="grid gap-4 sm:grid-cols-2">
-          {steps.map((step, index) => (
-            <div key={step.title} className="card flex gap-4 p-5">
-              <span className="flex h-10 w-10 flex-none items-center justify-center rounded-xl bg-gradient-to-br from-accent-green to-accent-blue text-base font-extrabold text-background shadow-[0_6px_16px_-4px_rgba(57,224,127,0.6)]">
-                {index + 1}
-              </span>
-              <div>
-                <h3 className="text-base font-semibold text-foreground">{step.title}</h3>
-                <p className="mt-1 text-sm text-muted">{step.body}</p>
-              </div>
-            </div>
-          ))}
-        </div>
-        <div>
-          <ButtonLink href="/" variant="primary" className="w-fit">
-            Patch an xdelta file now
-            <IconArrowRight className="h-4 w-4" />
-          </ButtonLink>
-        </div>
-      </section>
-
-      <section className="flex flex-col gap-4">
-        <SectionHeading icon={<IconAlertTriangle />} title="Mistakes That Trip Up xdelta Patching" accent="amber" />
-        <div className="grid gap-4 sm:grid-cols-3">
-          {mistakes.map((item) => (
-            <TroubleshootingCard
-              key={item.problem}
-              problem={item.problem}
-              solution={item.solution}
-              icon={item.icon}
-            />
-          ))}
-        </div>
-      </section>
-
-      <section className="flex flex-col gap-4">
-        <SectionHeading icon={<IconDatabase />} title="Troubleshooting" accent="amber" />
-        <div className="grid gap-4 sm:grid-cols-3">
-          {troubleshooting.map((item) => (
-            <TroubleshootingCard
-              key={item.problem}
-              problem={item.problem}
-              solution={item.solution}
-              icon={item.icon}
-              href="/troubleshooting"
-            />
-          ))}
-        </div>
-      </section>
-
-      <section className="flex flex-col gap-4">
-        <SectionHeading icon={<IconInfo />} title="FAQ" accent="blue" />
-        <FaqAccordion items={faqItems} />
-      </section>
-
-      <section className="flex flex-col gap-4">
-        <SectionHeading icon={<IconLayers />} title="Related Guides" accent="blue" />
-        <RelatedGuides
-          items={[
-            {
-              href: "/",
-              title: "ROM Patcher",
-              description: "Patch a ROM file directly in your browser.",
-            },
-            {
-              href: "/patch-formats",
-              title: "Patch Formats Explained",
-              description: "IPS vs UPS vs BPS vs xdelta — which one do you need?",
-            },
-            {
-              href: "/nds-rom-patcher",
-              title: "NDS ROM Patcher",
-              description: "xdelta is the dominant patch format for Nintendo DS ROM hacks.",
-            },
-            {
-              href: "/troubleshooting",
-              title: "Troubleshooting",
-              description: "Fix common ROM patching errors and mismatches.",
-            },
-            {
-              href: "/patch-compatibility-checker",
-              title: "ROM & Patch Compatibility Checker",
-              description: "Check whether a ROM matches a patch before you patch it.",
-            },
-          ]}
-        />
-      </section>
-
-      <div className="card relative flex flex-col items-center gap-4 overflow-hidden rounded-3xl bg-gradient-to-br from-accent-green/10 via-card to-accent-blue/10 p-8 text-center">
-        <BrandArt className="h-20 w-20" />
-        <p className="text-sm text-muted">
-          Large file, same privacy guarantee — your ROM and patch stay on this device the whole
-          time.
-        </p>
-        <ButtonLink href="/" variant="primary" className="w-fit">
-          Open the ROM Patcher
-          <IconArrowRight className="h-4 w-4" />
-        </ButtonLink>
-      </div>
-
-      <p className="text-xs text-muted">
-        New to patching in general? See{" "}
-        <Link href="/patch-formats" className="text-accent-blue hover:underline">
-          how xdelta compares to IPS, UPS, and BPS
-        </Link>
-        .
-      </p>
-    </div>
+          <p>
+            Your best check is the ROM itself: hash it with the{" "}
+            <InlineLink href="/rom-checksum-checker">ROM Checksum Checker</InlineLink>{" "}and compare the CRC32
+            with the hack&apos;s notes. After patching, any xdelta patch that carries Adler-32 checksums of its
+            output is verified, and a result that fails is refused.
+          </p>
+        </>
+      }
+      feature={{
+        icon: <IconInfo />,
+        title: "A Tool Borrowed From Outside ROM Hacking",
+        accent: "amber",
+        body: (
+          <>
+            <p>
+              Unlike IPS, UPS or BPS, xdelta was not built for ROMs. It is a general binary diff tool based
+              on the VCDIFF format (RFC 3284), used well beyond gaming. ROM hackers adopted it because it
+              copes with very large files, such as Nintendo DS games, without the diff becoming unreasonably
+              large.
+            </p>
+            <p>
+              <strong className="text-foreground">What is supported.</strong>{" "}Plain VCDIFF patches and ones
+              with LZMA secondary compression, which xdelta3 uses by default in builds that include LZMA.
+              Patches using DJW or FGK secondary compression are recognised but not applied: PatchMyROM
+              names the method and tells you to ask the author for a patch made with{" "}
+              <code className="text-foreground">xdelta3 -S none</code> or{" "}
+              <code className="text-foreground">-S lzma</code>, or to use the official xdelta3 tool.
+            </p>
+            <p>
+              Large files take time to read and need more than twice their size in free memory. See the{" "}
+              <InlineLink href="/nds-rom-patcher">NDS ROM Patcher</InlineLink>{" "}page for what that means in
+              practice.
+            </p>
+          </>
+        ),
+      }}
+      howTo={{
+        name: "How to Apply an xdelta Patch",
+        description: "Steps to apply an xdelta (VCDIFF) patch file to a large ROM using a browser-based patcher.",
+        steps: [
+          {
+            title: "Have your base ROM ready",
+            body: "xdelta patches for a DS game can mean waiting on a file of tens or hundreds of megabytes. Make sure you have the exact dump.",
+          },
+          {
+            title: "Get the .xdelta patch file",
+            body: "It is usually a single file. Check that it is meant for your ROM revision.",
+          },
+          {
+            title: "Load both files into the patcher",
+            body: "Large files take a moment to read, and progress is shown while it works.",
+          },
+          {
+            title: "Download the result",
+            body: "The patched ROM is assembled locally and offered as a normal download once any available checksums pass.",
+          },
+        ],
+      }}
+      mistakesTitle="Mistakes That Trip Up xdelta Patching"
+      mistakes={[
+        {
+          problem: "Expecting xdelta to be ROM-hacking-specific",
+          solution:
+            "It is a general binary diff tool. That means it carries no ROM conventions such as headers or a stored source checksum the way BPS and UPS do.",
+        },
+        {
+          problem: "Using a differently dumped copy of a large ROM",
+          solution:
+            "Two dumps of the same game can differ by a few bytes, which is enough to break an xdelta patch. Use the exact source the patch author names.",
+        },
+        {
+          problem: "Assuming every .xdelta file behaves the same way",
+          solution:
+            "Patches can use secondary compression, and the extension does not say which. PatchMyROM applies plain and LZMA-compressed patches, and names DJW or FGK ones as unsupported.",
+        },
+      ]}
+      troubleshooting={[
+        {
+          problem: "Patch is rejected for its secondary compression",
+          solution:
+            "The message names DJW or FGK. Ask the hack's author for a patch built with `xdelta3 -S none` (or `-S lzma`), or apply it with the official xdelta3 command-line tool.",
+        },
+        {
+          problem: "It is taking a long time with no visible progress",
+          solution:
+            "Reading and checking a file of hundreds of megabytes takes real time in a browser. The progress bar advances as it works, which is expected, not a sign it is stuck.",
+        },
+        {
+          problem: "Patch applies but the game does not boot",
+          solution:
+            "Confirm your source ROM matches byte for byte what the patch was built from. When the patch carries output checksums, PatchMyROM refuses a result that fails them, so a file that downloaded has passed.",
+        },
+      ]}
+      faq={[
+        {
+          question: "Is xdelta a ROM hacking format like IPS or BPS?",
+          answer:
+            "No. xdelta is a general-purpose binary diff tool. The ROM hacking community adopted it because it copes well with very large files.",
+        },
+        {
+          question: "Why is xdelta used for Nintendo DS games specifically?",
+          answer:
+            "DS ROMs run from tens to hundreds of megabytes. IPS cannot address more than 16 MB, and other formats were designed around smaller games.",
+        },
+        {
+          question: "Why did my xdelta patch fail when others worked fine?",
+          answer:
+            "The most common cause is a base ROM that does not match exactly. A less common one is a patch built with DJW or FGK secondary compression, which PatchMyROM cannot decode; uncompressed and LZMA patches are supported.",
+        },
+        {
+          question: "Which xdelta variants does PatchMyROM support?",
+          answer:
+            "Uncompressed VCDIFF patches and LZMA-compressed ones. Patches with DJW or FGK secondary compression are detected and rejected with a message that says which one, because PatchMyROM cannot decode them.",
+        },
+        {
+          question: "Does patching a huge ROM in a browser actually work?",
+          answer:
+            "Yes, though it takes longer than a small GBA or SNES file and needs enough free memory. If the device runs out, a clear out-of-memory message appears.",
+        },
+      ]}
+      related={[
+        { href: "/", title: "ROM Patcher", description: "The general-purpose patcher for any console." },
+        { href: "/patch-formats", title: "Patch Formats Compared", description: "IPS, UPS, BPS and xdelta side by side." },
+        { href: "/nds-rom-patcher", title: "NDS ROM Patcher", description: "Where xdelta is used most: large DS ROMs." },
+        { href: "/troubleshooting", title: "Troubleshooting", description: "Fixes for common patching errors." },
+        { href: "/rom-checksum-checker", title: "ROM Checksum Checker", description: "Hash your ROM, the best check before xdelta." },
+        { href: "/patch-compatibility-checker", title: "Patch Compatibility Checker", description: "See what can and cannot be verified." },
+      ]}
+      footer={
+        <>
+          Not sure which format your patch is? See{" "}
+          <InlineLink href="/patch-formats">how IPS, UPS, and BPS compare</InlineLink>.
+        </>
+      }
+    />
   );
 }

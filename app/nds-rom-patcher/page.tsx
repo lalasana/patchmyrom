@@ -1,23 +1,7 @@
-import PageHero from "@/components/ui/PageHero";
-import { BrandArt } from "@/components/ui/CardArt";
 import type { Metadata } from "next";
-import Link from "next/link";
-import Breadcrumbs from "@/components/ui/Breadcrumbs";
-import RelatedGuides from "@/components/ui/RelatedGuides";
-import TroubleshootingCard from "@/components/ui/TroubleshootingCard";
-import FaqAccordion from "@/components/ui/FaqAccordion";
-import SectionHeading from "@/components/ui/SectionHeading";
-import JsonLd from "@/components/seo/JsonLd";
-import { ButtonLink } from "@/components/ui/Button";
-import { FormatChip } from "@/components/ui/FormatBadge";
-import {
-  IconInfo,
-  IconLayers,
-  IconAlertTriangle,
-  IconDatabase,
-  IconBolt,
-  IconArrowRight,
-} from "@/components/ui/icons";
+import ToolPage from "@/components/tool/ToolPage";
+import InlineLink from "@/components/ui/InlineLink";
+import { IconBolt } from "@/components/ui/icons";
 import { buildPageMetadata } from "@/lib/seo";
 
 export const metadata: Metadata = buildPageMetadata({
@@ -27,232 +11,162 @@ export const metadata: Metadata = buildPageMetadata({
   path: "/nds-rom-patcher",
 });
 
-const steps = [
-  {
-    title: "Locate your .nds ROM",
-    body: "DS games run much larger than earlier handheld ROMs — expect anywhere from around 32MB up to several hundred megabytes depending on the game.",
-  },
-  {
-    title: "Download the matching patch",
-    body: "Almost always distributed as a single .xdelta file built against one specific ROM dump.",
-  },
-  {
-    title: "Load both into the patcher",
-    body: "Reading a large file takes longer than a small one — you'll see real read progress rather than a frozen page.",
-  },
-  {
-    title: "Download the finished ROM",
-    body: "Once applied, the result is ready to load in any DS-compatible emulator or flashcart tool.",
-  },
-];
-
-const mistakes = [
-  {
-    problem: "Not budgeting time for a large file",
-    solution:
-      "A 200MB+ ROM takes noticeably longer to read and hash than a 16MB GBA file. That's the file size talking, not a broken tool.",
-    icon: <IconBolt />,
-  },
-  {
-    problem: "Using a dump from a different source than the patch expects",
-    solution:
-      "Two dumps of the same DS game can differ slightly depending on how they were extracted. Match the exact source the patch author recommends.",
-    icon: <IconDatabase />,
-  },
-  {
-    problem: "Closing the tab mid-patch on a slower device",
-    solution:
-      "Large files mean more work for your browser to do. Give it a moment to finish, especially on older phones or laptops.",
-    icon: <IconAlertTriangle />,
-  },
-];
-
-const troubleshooting = [
-  {
-    problem: "The page feels unresponsive while reading a big ROM",
-    solution:
-      "Reading and hashing a multi-hundred-megabyte file takes real time. The patcher reports progress as it goes rather than locking up silently.",
-    icon: <IconBolt />,
-  },
-  {
-    problem: "Patch fails right away",
-    solution:
-      "Confirm the ROM is the exact dump the patch targets. DS ROMs don't tolerate the small differences between dumping tools as gracefully as some smaller formats.",
-    icon: <IconDatabase />,
-  },
-  {
-    problem: "Patch applies but the game won't load on a flashcart",
-    solution:
-      "That's usually a flashcart firmware or file-naming issue rather than a patching problem — worth checking your flashcart's own documentation.",
-    icon: <IconAlertTriangle />,
-  },
-];
-
-const faqItems = [
-  {
-    question: "Why are Nintendo DS ROMs so much bigger than GBA ones?",
-    answer: "The DS supports dual screens, 3D graphics, and generally richer games, which all demand more storage. That's also why DS ROM hacks lean on xdelta instead of older, smaller-scale patch formats.",
-  },
-  {
-    question: "Can a browser really patch a 300MB+ ROM?",
-    answer: "Yes — it just takes longer than a small file would. The trade-off for staying entirely on-device is that your browser does the same work a desktop patching tool would do.",
-  },
-  {
-    question: "What patch format do NDS ROM hacks use?",
-    answer: "Almost always xdelta. It handles large binary diffs well, which matters a lot once files reach DS-scale sizes.",
-  },
-  {
-    question: "Do I need a specific emulator for a patched DS ROM?",
-    answer: "Any emulator or flashcart that runs the original game should run the patched version, since patching only changes the ROM's contents, not its format.",
-  },
-];
-
 export default function NdsRomPatcherPage() {
-  const howToJsonLd = {
-    "@context": "https://schema.org",
-    "@type": "HowTo",
-    name: "How to Patch a Nintendo DS ROM",
-    description: "Steps to apply an xdelta patch to a Nintendo DS ROM using a browser-based patcher.",
-    step: steps.map((step) => ({
-      "@type": "HowToStep",
-      name: step.title,
-      text: step.body,
-    })),
-  };
-
   return (
-    <div className="container-page flex flex-col gap-10 py-10 sm:py-14">
-      <JsonLd data={howToJsonLd} />
-      <Breadcrumbs items={[{ href: "/nds-rom-patcher", label: "NDS ROM Patcher" }]} />
-
-      <PageHero art="cartridge" accent="blue">
-<h1 className="text-3xl font-bold text-foreground sm:text-4xl">NDS ROM Patcher</h1>
-        <p className="max-w-2xl text-muted sm:text-lg">
-          Nintendo DS ROMs run much larger than earlier handheld games. This patcher is built to
-          handle that size locally, with real progress instead of a frozen page.
+    <ToolPage
+      path="/nds-rom-patcher"
+      breadcrumbLabel="NDS ROM Patcher"
+      art="cartridge"
+      accent="blue"
+      title="NDS ROM Patcher"
+      intro={
+        <p>
+          Patch a Nintendo DS ROM with an xdelta file, or an IPS, UPS or BPS one, right on this page.
+          Large files show real progress while they are read, and nothing leaves your device.
         </p>
-        <div>
-          <FormatChip format="XDelta" />
-        </div>
-      </PageHero>
-
-      <section className="flex flex-col gap-4">
-        <SectionHeading icon={<IconBolt />} title="Patching at DS Scale" accent="purple" />
-        <div className="card border-l-4 border-l-accent-purple p-5">
-          <p className="max-w-3xl text-muted">
-            A DS ROM can be ten or twenty times the size of a typical GBA game. That changes what
-            patching actually involves — instead of a near-instant operation, reading and
-            verifying the file becomes the slowest part of the process. This patcher reads large
-            ROMs in chunks and shows genuine progress the whole way through, rather than leaving
-            the page looking stuck while it works.
+      }
+      chips={["XDelta"]}
+      patcher={{
+        heading: "Patch an NDS ROM",
+        romLabel: "Original NDS ROM",
+        romHint: "Your own .nds dump",
+        patchHint: "Most DS hacks use .xdelta; .ips, .ups and .bps also work",
+      }}
+      verify={
+        <>
+          <p>
+            Two dumps of the same DS game can differ (trimmed versus full-size, for example), and an
+            xdelta patch is built against one exact file. Check yours with the{" "}
+            <InlineLink href="/rom-checksum-checker">ROM Checksum Checker</InlineLink>, which also reads the
+            header to tell a DS ROM from a DSi one, and compare the CRC32 with the hack&apos;s notes.
           </p>
-        </div>
-      </section>
-
-      <section className="flex flex-col gap-4">
-        <SectionHeading icon={<IconLayers />} title="Step-by-Step" accent="blue" />
-        <div className="grid gap-4 sm:grid-cols-2">
-          {steps.map((step, index) => (
-            <div key={step.title} className="card flex gap-4 p-5">
-              <span className="flex h-10 w-10 flex-none items-center justify-center rounded-xl bg-gradient-to-br from-accent-green to-accent-blue text-base font-extrabold text-background shadow-[0_6px_16px_-4px_rgba(57,224,127,0.6)]">
-                {index + 1}
-              </span>
-              <div>
-                <h3 className="text-base font-semibold text-foreground">{step.title}</h3>
-                <p className="mt-1 text-sm text-muted">{step.body}</p>
-              </div>
-            </div>
-          ))}
-        </div>
-        <div>
-          <ButtonLink href="/" variant="primary" className="w-fit">
-            Patch an NDS ROM now
-            <IconArrowRight className="h-4 w-4" />
-          </ButtonLink>
-        </div>
-      </section>
-
-      <section className="flex flex-col gap-4">
-        <SectionHeading icon={<IconAlertTriangle />} title="Mistakes That Trip Up NDS Patching" accent="amber" />
-        <div className="grid gap-4 sm:grid-cols-3">
-          {mistakes.map((item) => (
-            <TroubleshootingCard
-              key={item.problem}
-              problem={item.problem}
-              solution={item.solution}
-              icon={item.icon}
-            />
-          ))}
-        </div>
-      </section>
-
-      <section className="flex flex-col gap-4">
-        <SectionHeading icon={<IconDatabase />} title="Troubleshooting" accent="amber" />
-        <div className="grid gap-4 sm:grid-cols-3">
-          {troubleshooting.map((item) => (
-            <TroubleshootingCard
-              key={item.problem}
-              problem={item.problem}
-              solution={item.solution}
-              icon={item.icon}
-              href="/troubleshooting"
-            />
-          ))}
-        </div>
-      </section>
-
-      <section className="flex flex-col gap-4">
-        <SectionHeading icon={<IconInfo />} title="FAQ" accent="blue" />
-        <FaqAccordion items={faqItems} />
-      </section>
-
-      <section className="flex flex-col gap-4">
-        <SectionHeading icon={<IconLayers />} title="Related Guides" accent="blue" />
-        <RelatedGuides
-          items={[
-            {
-              href: "/",
-              title: "ROM Patcher",
-              description: "Patch a ROM file directly in your browser.",
-            },
-            {
-              href: "/xdelta-patcher",
-              title: "xdelta Patcher",
-              description: "A closer look at the format behind most NDS ROM hack patches.",
-            },
-            {
-              href: "/troubleshooting",
-              title: "Troubleshooting",
-              description: "Fix common ROM patching errors and mismatches.",
-            },
-            {
-              href: "/gba-rom-patcher",
-              title: "GBA ROM Patcher",
-              description: "For smaller handheld ROMs using IPS, UPS, or BPS.",
-            },
-          ]}
-        />
-      </section>
-
-      <div className="card relative flex flex-col items-center gap-4 overflow-hidden rounded-3xl bg-gradient-to-br from-accent-green/10 via-card to-accent-blue/10 p-8 text-center">
-        <BrandArt className="h-20 w-20" />
-        <p className="text-sm text-muted">
-          Big file, same guarantee — it never leaves your device, patched entirely in this
-          browser tab.
-        </p>
-        <ButtonLink href="/" variant="primary" className="w-fit">
-          Open the ROM Patcher
-          <IconArrowRight className="h-4 w-4" />
-        </ButtonLink>
-      </div>
-
-      <p className="text-xs text-muted">
-        Curious how xdelta actually works? See the{" "}
-        <Link href="/xdelta-patcher" className="text-accent-blue hover:underline">
-          xdelta patcher guide
-        </Link>
-        .
-      </p>
-    </div>
+          <p>
+            xdelta patches do not store a checksum of the ROM they expect, so the{" "}
+            <InlineLink href="/patch-compatibility-checker">Patch Compatibility Checker</InlineLink>{" "}will say
+            it cannot verify them. The patcher still checks the finished file whenever the patch carries
+            output checksums, and refuses to hand over one that fails.
+          </p>
+        </>
+      }
+      feature={{
+        icon: <IconBolt />,
+        title: "Patching at DS Scale",
+        accent: "purple",
+        body: (
+          <>
+            <p>
+              DS ROMs run from tens to hundreds of megabytes, many times the size of a typical GBA game, so
+              reading and checking the file is the slowest part. The patcher reads it in chunks and reports
+              progress instead of looking frozen.
+            </p>
+            <p>
+              Everything happens in memory: the ROM, the patch and the patched copy are all held at once, so
+              you need free memory of more than twice the ROM&apos;s size. If a device runs out, the patcher
+              reports an out-of-memory error rather than crashing; a desktop browser is the safest choice for
+              the biggest files.
+            </p>
+            <p>
+              This is why DS hacks, including the DS entries in our{" "}
+              <InlineLink href="/pokemon-rom-patcher">Pokémon hack reference</InlineLink>, are normally
+              distributed as xdelta. The <InlineLink href="/xdelta-patcher">xdelta Patcher</InlineLink>{" "}page
+              explains the format and which xdelta variants are supported.
+            </p>
+          </>
+        ),
+      }}
+      howTo={{
+        name: "How to Patch a Nintendo DS ROM",
+        description: "Steps to apply an xdelta patch to a Nintendo DS ROM using a browser-based patcher.",
+        steps: [
+          {
+            title: "Locate your .nds ROM",
+            body: "Use the exact dump the patch author names. File size alone is not enough to tell dumps apart.",
+          },
+          {
+            title: "Download the matching patch",
+            body: "DS patches are usually a single .xdelta file built against one specific ROM.",
+          },
+          {
+            title: "Load both into the patcher",
+            body: "Expect a wait on big files; the progress bar shows reading, patching and verifying separately.",
+          },
+          {
+            title: "Download the finished ROM",
+            body: "The result keeps your file's name with “(patched)” added, ready for a DS emulator or flashcart tool.",
+          },
+        ],
+      }}
+      mistakesTitle="Mistakes That Trip Up NDS Patching"
+      mistakes={[
+        {
+          problem: "Not budgeting time and memory for a large file",
+          solution:
+            "A 200 MB ROM takes noticeably longer to read than a 16 MB GBA file and needs more than twice its size in free memory. Close other heavy tabs first.",
+        },
+        {
+          problem: "Using a dump from a different source than the patch expects",
+          solution:
+            "Dumps of the same game can differ slightly depending on how they were extracted. Match the exact source the patch author recommends.",
+        },
+        {
+          problem: "Closing the tab mid-patch",
+          solution:
+            "The work lives in the page. Wait for the download button, especially on older phones and laptops where large files can take minutes.",
+        },
+      ]}
+      troubleshooting={[
+        {
+          problem: "The page looks idle while a big ROM loads",
+          solution:
+            "Reading and checking a multi-hundred-megabyte file takes real time. Watch the progress bar; it advances as chunks are read.",
+        },
+        {
+          problem: "Patch fails right away",
+          solution:
+            "For xdelta this usually means the ROM is not the exact dump the patch targets. If the message names DJW or FGK compression, the patch needs re-creating or the official xdelta3 tool, as explained on the xdelta page.",
+        },
+        {
+          problem: "Patch applies but the game will not load on a flashcart",
+          solution:
+            "That is usually a flashcart firmware or file-naming matter rather than a patching one. Check the flashcart's documentation, and test the patched file in an emulator first.",
+        },
+      ]}
+      faq={[
+        {
+          question: "Why are Nintendo DS ROMs so much bigger than GBA ones?",
+          answer:
+            "DS games store far more data (two screens, 3D graphics, larger worlds), and the cartridges are larger. That size is why DS hacks lean on xdelta.",
+        },
+        {
+          question: "Can a browser really patch a 300MB+ ROM?",
+          answer:
+            "Yes, provided the device has enough free memory, because the ROM, patch and result are held at once. It takes longer than a small file, and a clear error appears if memory runs out.",
+        },
+        {
+          question: "What patch format do NDS ROM hacks use?",
+          answer:
+            "Most use xdelta, as the Pokémon DS hacks in our reference do. Some use IPS, UPS or BPS, and those work here too; the format is read from the file.",
+        },
+        {
+          question: "Do I need a specific emulator for a patched DS ROM?",
+          answer:
+            "Any emulator or flashcart that runs the original game should run the patched one, since patching changes the ROM's contents, not its format.",
+        },
+      ]}
+      related={[
+        { href: "/", title: "ROM Patcher", description: "The general-purpose patcher for any console." },
+        { href: "/xdelta-patcher", title: "xdelta Patcher", description: "How xdelta works and which variants are supported." },
+        { href: "/troubleshooting", title: "Troubleshooting", description: "Fixes for checksum mismatches and failed patches." },
+        { href: "/gba-rom-patcher", title: "GBA ROM Patcher", description: "For Game Boy Advance hacks instead." },
+        { href: "/rom-checksum-checker", title: "ROM Checksum Checker", description: "Hash a large ROM and compare it with the hack's notes." },
+        { href: "/patch-compatibility-checker", title: "Patch Compatibility Checker", description: "See what can and cannot be verified for your patch." },
+      ]}
+      footer={
+        <>
+          Working with a particular patch type? Read the{" "}
+          <InlineLink href="/xdelta-patcher">xdelta Patcher guide</InlineLink>.
+        </>
+      }
+    />
   );
 }

@@ -11,28 +11,28 @@ export type PokemonHackBaseRomEntry = {
 
 /**
  * Base ROM / patch format reference for popular Pokemon ROM hacks.
- * Compiled from official hack pages, PokeCommunity threads, GitHub
- * releases, and community documentation (see /pokemon-rom-patcher for
- * sourcing notes). Base ROM versions and patch formats can change
- * between hack releases — always confirm against the hack's own
- * patch notes before patching.
+ * Compiled from community guides and hack release notes. It has NOT been
+ * re-verified against each hack's current release, and base ROM versions and
+ * patch formats change between releases. Where sources disagreed or could not
+ * be confirmed the format is shown as "Varies" instead of guessed. Always confirm
+ * against the hack's own patch notes before patching.
  */
 export const pokemonHackBaseRomTable: PokemonHackBaseRomEntry[] = [
   {
     hackName: "Pokemon Radical Red",
     baseGame: "Pokemon FireRed",
     platform: "GBA",
-    commonPatchFormat: "UPS",
+    commonPatchFormat: "Varies",
     status: "Active / Updated",
-    shortNote: "Requires a clean FireRed 1.0 (USA) base ROM. Check the official patch page for the exact version.",
+    shortNote: "Community guides point to a clean FireRed 1.0 (USA) base ROM. Guides disagree on the patch format (IPS and UPS are both reported) and it can change between releases — use what the official patch page provides.",
   },
   {
     hackName: "Pokemon Unbound",
     baseGame: "Pokemon FireRed",
     platform: "GBA",
-    commonPatchFormat: "BPS",
+    commonPatchFormat: "Varies",
     status: "Completed / Updated",
-    shortNote: "Needs a clean, unheadered FireRed 1.0 (USA) ROM. Distributed as an official BPS patch.",
+    shortNote: "Community guides point to a clean FireRed 1.0 (USA) ROM. Guides report UPS or IPS, not BPS; confirm the format on the official release page.",
   },
   {
     hackName: "Pokemon Gaia",
@@ -48,7 +48,7 @@ export const pokemonHackBaseRomTable: PokemonHackBaseRomEntry[] = [
     platform: "GBA",
     commonPatchFormat: "IPS",
     status: "Completed",
-    shortNote: "Official patch targets FireRed 1.0 (USA) specifically — other revisions are not compatible.",
+    shortNote: "Reported to target FireRed 1.0 (USA) specifically; other revisions are reported as incompatible.",
   },
   {
     hackName: "Pokemon Emerald Rogue",
@@ -112,7 +112,7 @@ export const pokemonHackBaseRomTable: PokemonHackBaseRomEntry[] = [
     platform: "GBC",
     commonPatchFormat: "BPS",
     status: "Active / Updated",
-    shortNote: "Official distribution is a BPS patch applied to a clean Crystal ROM; some releases also ship IPS.",
+    shortNote: "Reported as a BPS patch applied to a clean Crystal ROM; some releases are said to also ship IPS.",
   },
   {
     hackName: "Pokemon Brown",
@@ -126,9 +126,9 @@ export const pokemonHackBaseRomTable: PokemonHackBaseRomEntry[] = [
     hackName: "Pokemon Polished Crystal",
     baseGame: "Pokemon Crystal",
     platform: "GBC",
-    commonPatchFormat: "IPS",
+    commonPatchFormat: "Varies",
     status: "Active / Updated",
-    shortNote: "Decompilation-based hack distributed via GitHub releases; patches target Crystal (UE) 1.0. Confirm format on the current GitHub release.",
+    shortNote: "Decompilation-based hack distributed via GitHub releases. The required Crystal revision and the patch format are listed with the current release, so confirm them there.",
   },
   {
     hackName: "Pokemon Renegade Platinum",
@@ -160,7 +160,7 @@ export const pokemonHackBaseRomTable: PokemonHackBaseRomEntry[] = [
     platform: "NDS",
     commonPatchFormat: "xdelta",
     status: "Classic / Legacy",
-    shortNote: "European ROMs are the recommended base; distributed only as xdelta patches, never pre-patched.",
+    shortNote: "Community guides recommend a European ROM as the base; shared as xdelta patches, not pre-patched.",
   },
   {
     hackName: "Pokemon Volt White",
@@ -168,7 +168,7 @@ export const pokemonHackBaseRomTable: PokemonHackBaseRomEntry[] = [
     platform: "NDS",
     commonPatchFormat: "xdelta",
     status: "Classic / Legacy",
-    shortNote: "European ROMs are the recommended base; distributed only as xdelta patches, never pre-patched.",
+    shortNote: "Community guides recommend a European ROM as the base; shared as xdelta patches, not pre-patched.",
   },
   {
     hackName: "Pokemon Blaze Black 2 Redux",
@@ -216,7 +216,7 @@ export const pokemonHackBaseRomTable: PokemonHackBaseRomEntry[] = [
     platform: "GBA",
     commonPatchFormat: "UPS",
     status: "Completed",
-    shortNote: "Requires FireRed (USA) 1.0 specifically — 1.1 is explicitly unsupported.",
+    shortNote: "Reported to need FireRed (USA) 1.0 specifically; 1.1 is reported as unsupported.",
   },
   {
     hackName: "Pokemon Ash Gray",
@@ -264,7 +264,7 @@ export const pokemonHackBaseRomTable: PokemonHackBaseRomEntry[] = [
     platform: "GBA",
     commonPatchFormat: "BPS",
     status: "Active / Updated",
-    shortNote: "Requires FireRed 1.0 — the 1.1 revision is explicitly unsupported by the official patch.",
+    shortNote: "Reported to need FireRed 1.0; the 1.1 revision is reported as unsupported.",
   },
   {
     hackName: "Pokemon SORS",

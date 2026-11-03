@@ -1,5 +1,6 @@
 "use client";
 
+import Link from "next/link";
 import { useMemo, useState } from "react";
 import {
   pokemonHackBaseRomTable,
@@ -105,6 +106,16 @@ export default function PokemonHackBaseRomTable() {
 
         <p className="text-xs text-muted">
           Showing {filtered.length} of {pokemonHackBaseRomTable.length} Pokemon ROM hacks.
+        </p>
+
+        <p className="rounded-lg border border-amber-500/30 bg-amber-500/10 px-3 py-2 text-xs text-amber-100">
+          Compiled from community guides and not re-checked against each hack&apos;s current release. “Varies” means
+          sources disagree or the format changes between releases. The hack&apos;s own patch notes are the authority; for
+          BPS and UPS patches the{" "}
+          <Link href="/patch-compatibility-checker" className="font-semibold text-accent-blue hover:underline">
+            Patch Compatibility Checker
+          </Link>{" "}
+          reads the exact CRC32 the patch needs and compares it with your ROM.
         </p>
 
         <div className="max-h-[32rem] overflow-auto rounded-xl border border-border">

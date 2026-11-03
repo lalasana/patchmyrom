@@ -15,6 +15,7 @@ import { useRomPatcherEngine, type PatchResult } from "@/hooks/useRomPatcherEngi
 import { useFileAnalysis } from "@/hooks/useFileAnalysis";
 import { addHistoryEntry } from "@/lib/patch-history";
 import { checkCompatibility } from "@/lib/validate-compatibility";
+import { getFormatDisplayName } from "@/lib/format-labels";
 
 const BUTTON_LABELS: Record<string, string> = {
   "reading-rom": "Reading ROM…",
@@ -34,10 +35,25 @@ const PROCESSING_STAGES = new Set([
   "preparing-download",
 ]);
 
-export default function RomPatcherTool() {
+type RomPatcherToolProps = {
+  /** Format the page expects (e.g. the IPS page). Only a hint: the format is always read from the patch file itself. */
+  defaultFormat?: PatchFormat;
+  heading?: string;
+  romLabel?: string;
+  romHint?: string;
+  patchHint?: string;
+};
+
+export default function RomPatcherTool({
+  defaultFormat = PATCH_FORMATS[0],
+  heading = "Patch a ROM",
+  romLabel = "Original ROM file",
+  romHint = "Select the original ROM file from your device",
+  patchHint = "Supports .ips, .ups, .bps, .xdelta and more",
+}: RomPatcherToolProps = {}) {
   const [romFile, setRomFile] = useState<File | null>(null);
   const [patchFile, setPatchFile] = useState<File | null>(null);
-  const [format, setFormat] = useState<PatchFormat>(PATCH_FORMATS[0]);
+  const [format, setFormat] = useState<PatchFormat>(defaultFormat);
   const { stage, progress, error, errorCode, result, runPatch, reset } = useRomPatcherEngine();
   const {
     romAnalysis,
@@ -53,6 +69,14 @@ export default function RomPatcherTool() {
     clearRom,
     clearPatch,
   } = useFileAnalysis();
+
+  // The selector never overrides detection. If the chosen format differs from what the file really is,
+  // say so and name the format that will actually be used.
+  const detectedName = patchAnalysis?.recognized ? getFormatDisplayName(patchAnalysis.format) : null;
+  const formatMismatch =
+    detectedName !== null && format !== "Auto-detect" && detectedName.toLowerCase() !== format.toLowerCase()
+      ? detectedName
+      : null;
 
   const hasBothFiles = Boolean(romFile && patchFile);
   const isProcessing = PROCESSING_STAGES.has(stage);
@@ -129,7 +153,7 @@ export default function RomPatcherTool() {
             <span className="flex h-10 w-10 items-center justify-center rounded-lg border-2 border-accent-green/40 bg-gradient-to-br from-accent-green/20 to-accent-blue/20 text-accent-green shadow-[0_3px_0_0_rgba(0,0,0,0.35)]">
               <IconCartridge className="h-5 w-5" />
             </span>
-            <h2 className="text-2xl font-bold text-foreground">Patch a ROM</h2>
+            <h2 className="text-2xl font-bold text-foreground">{heading}</h2>
           </div>
 
           <div className="relative grid gap-5 sm:grid-cols-2 sm:gap-8">
@@ -141,8 +165,8 @@ export default function RomPatcherTool() {
             </span>
             <div className="flex min-w-0 flex-col gap-2">
               <FileDropZone
-                label="Original ROM file"
-                hint="Select the original ROM file from your device"
+                label={romLabel}
+                hint={romHint}
                 icon={<IconCartridge />}
                 art="cartridge"
                 file={romFile}
@@ -158,7 +182,7 @@ export default function RomPatcherTool() {
             <div className="flex min-w-0 flex-col gap-2">
               <FileDropZone
                 label="Patch file"
-                hint="Supports .ips, .ups, .bps, .xdelta and more"
+                hint={patchHint}
                 icon={<IconPatchFile />}
                 art="patch"
                 file={patchFile}
@@ -173,7 +197,7 @@ export default function RomPatcherTool() {
             </div>
           </div>
 
-          <FormatSelector value={format} onChange={setFormat} />
+          <FormatSelector value={format} onChange={setFormat} mismatch={formatMismatch} />
 
           <ValidationSummary check={compat} id="compat-verdict" />
 

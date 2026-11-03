@@ -72,9 +72,9 @@ const troubleshooting = [
 ];
 
 const pokemonHacks = [
-  { name: "Radical Red", base: "FireRed", type: "UPS" },
-  { name: "Unbound", base: "FireRed", type: "UPS" },
-  { name: "Emerald Rogue", base: "Emerald", type: "BPS / UPS" },
+  { name: "Radical Red", base: "FireRed", type: "Varies" },
+  { name: "Unbound", base: "FireRed", type: "Varies" },
+  { name: "Emerald Rogue", base: "Emerald", type: "BPS" },
   { name: "Gaia", base: "FireRed", type: "UPS" },
 ];
 

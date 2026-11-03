@@ -1,270 +1,172 @@
-import PageHero from "@/components/ui/PageHero";
-import { BrandArt } from "@/components/ui/CardArt";
 import type { Metadata } from "next";
-import Link from "next/link";
-import Breadcrumbs from "@/components/ui/Breadcrumbs";
-import RelatedGuides from "@/components/ui/RelatedGuides";
-import TroubleshootingCard from "@/components/ui/TroubleshootingCard";
-import FaqAccordion from "@/components/ui/FaqAccordion";
-import SectionHeading from "@/components/ui/SectionHeading";
-import JsonLd from "@/components/seo/JsonLd";
-import { ButtonLink } from "@/components/ui/Button";
-import { FormatChip } from "@/components/ui/FormatBadge";
-import {
-  IconInfo,
-  IconLayers,
-  IconAlertTriangle,
-  IconDatabase,
-  IconFileQuestion,
-  IconArrowRight,
-} from "@/components/ui/icons";
+import ToolPage from "@/components/tool/ToolPage";
+import InlineLink from "@/components/ui/InlineLink";
+import { IconFileQuestion } from "@/components/ui/icons";
 import { buildPageMetadata } from "@/lib/seo";
 
 export const metadata: Metadata = buildPageMetadata({
   title: "SNES ROM Patcher — Patch SNES ROMs Online",
   description:
-    "Apply IPS, UPS, or BPS patches to an SNES ROM in your browser, with automatic handling of the old copier header some dumps carry.",
+    "Apply IPS, UPS, or BPS patches to an SNES ROM in your browser, with copier-header-aware matching for UPS and BPS patches.",
   path: "/snes-rom-patcher",
 });
 
-const steps = [
-  {
-    title: "Start with your .sfc or .smc ROM",
-    body: "Both extensions are common for SNES dumps and work the same way once loaded.",
-  },
-  {
-    title: "Get the patch that matches your copy",
-    body: "SNES hacks show up in IPS, UPS, or BPS depending on the project's age and size.",
-  },
-  {
-    title: "Select both files",
-    body: "The patcher figures out the format on its own, and handles a copier header automatically if one is present.",
-  },
-  {
-    title: "Download the patched ROM",
-    body: "The result is ready to load in any SNES emulator, header or no header.",
-  },
-];
-
-const mistakes = [
-  {
-    problem: "Not knowing whether the ROM has a copier header",
-    solution:
-      "Some older SNES dumps carry an extra 512 bytes tacked onto the front from long-obsolete copier hardware. This patcher detects and handles it automatically, so there's usually nothing you need to do manually.",
-    icon: <IconDatabase />,
-  },
-  {
-    problem: "Applying a patch built for the opposite header state",
-    solution:
-      "A patch made for a headered ROM expects those extra 512 bytes; one made for a headerless dump doesn't. Getting this backwards is one of the more SNES-specific ways a patch can fail.",
-    icon: <IconAlertTriangle />,
-  },
-  {
-    problem: "Assuming IPS will catch a wrong-ROM mistake",
-    solution:
-      "Plenty of SNES hacks still use IPS, which has no verification built in. Newer projects using BPS will catch this for you; older IPS-based ones won't.",
-    icon: <IconFileQuestion />,
-  },
-];
-
-const troubleshooting = [
-  {
-    problem: "Patch fails or the game glitches out after a UPS/BPS patch",
-    solution:
-      "Check whether your ROM has a copier header the patch didn't expect, or vice versa. This is one of the most common SNES-specific causes of a checksum mismatch.",
-    icon: <IconDatabase />,
-  },
-  {
-    problem: "IPS patch applies but the game is broken",
-    solution:
-      "Since IPS can't verify the source ROM, this usually means a mismatched revision or region rather than a bad patch file.",
-    icon: <IconAlertTriangle />,
-  },
-  {
-    problem: "Output file size looks 512 bytes off from what you expected",
-    solution:
-      "That's the copier header being added or removed as part of patching — not an error, just the header state changing.",
-    icon: <IconFileQuestion />,
-  },
-];
-
-const faqItems = [
-  {
-    question: "What is a SNES copier header?",
-    answer: "A 512-byte block some old SNES ROM dumps carry at the start of the file, left over from copier hardware used to transfer games decades ago. It has nothing to do with the game itself.",
-  },
-  {
-    question: "Does this patcher handle the copier header for me?",
-    answer: "Yes. It can detect a header on a supported SNES file extension and remove or reapply it as needed so the patch lines up correctly either way.",
-  },
-  {
-    question: "Which patch format is most common for SNES hacks?",
-    answer: "IPS historically, given how old the SNES hacking scene is. BPS has picked up ground more recently, particularly for larger or actively maintained projects.",
-  },
-  {
-    question: "Why do some SNES ROMs end in .smc and others in .sfc?",
-    answer: "Both are common container extensions for the same underlying SNES ROM data — the extension by itself doesn't tell you whether a copier header is present.",
-  },
-];
-
 export default function SnesRomPatcherPage() {
-  const howToJsonLd = {
-    "@context": "https://schema.org",
-    "@type": "HowTo",
-    name: "How to Patch an SNES ROM",
-    description: "Steps to apply an IPS, UPS, or BPS patch to an SNES ROM using a browser-based patcher.",
-    step: steps.map((step) => ({
-      "@type": "HowToStep",
-      name: step.title,
-      text: step.body,
-    })),
-  };
-
   return (
-    <div className="container-page flex flex-col gap-10 py-10 sm:py-14">
-      <JsonLd data={howToJsonLd} />
-      <Breadcrumbs items={[{ href: "/snes-rom-patcher", label: "SNES ROM Patcher" }]} />
-
-      <PageHero art="cartridge" accent="purple">
-<h1 className="text-3xl font-bold text-foreground sm:text-4xl">SNES ROM Patcher</h1>
-        <p className="max-w-2xl text-muted sm:text-lg">
-          SNES ROMs patch cleanly in most cases — the one thing to watch for is an old-style
-          copier header, which this tool detects and handles for you.
+    <ToolPage
+      path="/snes-rom-patcher"
+      breadcrumbLabel="SNES ROM Patcher"
+      art="cartridge"
+      accent="purple"
+      title="SNES ROM Patcher"
+      intro={
+        <p>
+          Apply an IPS, UPS or BPS patch to an SNES ROM right on this page. The one thing to watch for is
+          the old 512-byte copier header: UPS and BPS patches are matched against it for you, and IPS is
+          applied to your file as it is.
         </p>
-        <div className="flex gap-2">
-          <FormatChip format="IPS" />
-          <FormatChip format="UPS" />
-          <FormatChip format="BPS" />
-        </div>
-      </PageHero>
-
-      <section className="flex flex-col gap-4">
-        <SectionHeading icon={<IconFileQuestion />} title="The Copier Header, Explained" accent="purple" />
-        <div className="card border-l-4 border-l-accent-purple p-5">
-          <p className="max-w-3xl text-muted">
-            Decades ago, SNES copiers — hardware used to transfer games before flash carts existed
-            — tacked an extra 512 bytes onto the front of a dump. Some ROM files still floating
-            around today carry that header, some don&apos;t, and a patch built for one won&apos;t line up
-            with the other. It&apos;s a small detail, but it&apos;s specific to this platform and it&apos;s the
-            single most common reason a technically-correct SNES patch still fails.
+      }
+      chips={["IPS", "UPS", "BPS"]}
+      patcher={{
+        heading: "Patch an SNES ROM",
+        romLabel: "Original SNES ROM",
+        romHint: "Your own .sfc or .smc dump",
+        patchHint: "Usually .ips, .ups or .bps",
+      }}
+      verify={
+        <>
+          <p>
+            Whether your file has a copier header is the first thing to know. The{" "}
+            <InlineLink href="/rom-checksum-checker">ROM Checksum Checker</InlineLink>{" "}reports whether a
+            512-byte header is present and whether the ROM is LoROM or HiROM, and shows its CRC32, MD5, SHA-1
+            and SHA-256 to compare with the hack&apos;s page.
           </p>
-        </div>
-      </section>
-
-      <section className="flex flex-col gap-4">
-        <SectionHeading icon={<IconLayers />} title="Step-by-Step" accent="blue" />
-        <div className="grid gap-4 sm:grid-cols-2">
-          {steps.map((step, index) => (
-            <div key={step.title} className="card flex gap-4 p-5">
-              <span className="flex h-10 w-10 flex-none items-center justify-center rounded-xl bg-gradient-to-br from-accent-green to-accent-blue text-base font-extrabold text-background shadow-[0_6px_16px_-4px_rgba(57,224,127,0.6)]">
-                {index + 1}
-              </span>
-              <div>
-                <h3 className="text-base font-semibold text-foreground">{step.title}</h3>
-                <p className="mt-1 text-sm text-muted">{step.body}</p>
-              </div>
-            </div>
-          ))}
-        </div>
-        <div>
-          <ButtonLink href="/" variant="primary" className="w-fit">
-            Patch an SNES ROM now
-            <IconArrowRight className="h-4 w-4" />
-          </ButtonLink>
-        </div>
-      </section>
-
-      <section className="flex flex-col gap-4">
-        <SectionHeading icon={<IconAlertTriangle />} title="Mistakes That Trip Up SNES Patching" accent="amber" />
-        <div className="grid gap-4 sm:grid-cols-3">
-          {mistakes.map((item) => (
-            <TroubleshootingCard
-              key={item.problem}
-              problem={item.problem}
-              solution={item.solution}
-              icon={item.icon}
-            />
-          ))}
-        </div>
-      </section>
-
-      <section className="flex flex-col gap-4">
-        <SectionHeading icon={<IconDatabase />} title="Troubleshooting" accent="amber" />
-        <div className="grid gap-4 sm:grid-cols-3">
-          {troubleshooting.map((item) => (
-            <TroubleshootingCard
-              key={item.problem}
-              problem={item.problem}
-              solution={item.solution}
-              icon={item.icon}
-              href="/troubleshooting"
-            />
-          ))}
-        </div>
-      </section>
-
-      <section className="flex flex-col gap-4">
-        <SectionHeading icon={<IconInfo />} title="FAQ" accent="blue" />
-        <FaqAccordion items={faqItems} />
-      </section>
-
-      <section className="flex flex-col gap-4">
-        <SectionHeading icon={<IconLayers />} title="Related Guides" accent="blue" />
-        <RelatedGuides
-          items={[
-            {
-              href: "/",
-              title: "ROM Patcher",
-              description: "Patch a ROM file directly in your browser.",
-            },
-            {
-              href: "/ips-patcher",
-              title: "IPS Patcher",
-              description: "The classic format for SNES translation and hacking projects.",
-            },
-            {
-              href: "/bps-patcher",
-              title: "BPS Patcher",
-              description: "The newer, checksum-verified choice for SNES hacks.",
-            },
-            {
-              href: "/nes-rom-patcher",
-              title: "NES ROM Patcher",
-              description: "IPS's other classic home platform, from the same hacking era.",
-            },
-            {
-              href: "/rom-checksum-checker",
-              title: "ROM Checksum Checker",
-              description: "Get a ROM's CRC32, MD5, SHA-1 and SHA-256 and compare them with a published value.",
-            },
-            {
-              href: "/patch-compatibility-checker",
-              title: "ROM & Patch Compatibility Checker",
-              description: "Check whether a ROM matches a patch before you patch it.",
-            },
-          ]}
-        />
-      </section>
-
-      <div className="card relative flex flex-col items-center gap-4 overflow-hidden rounded-3xl bg-gradient-to-br from-accent-green/10 via-card to-accent-blue/10 p-8 text-center">
-        <BrandArt className="h-20 w-20" />
-        <p className="text-sm text-muted">
-          Header or no header, the patcher below sorts it out — your ROM never leaves this
-          browser tab.
-        </p>
-        <ButtonLink href="/" variant="primary" className="w-fit">
-          Open the ROM Patcher
-          <IconArrowRight className="h-4 w-4" />
-        </ButtonLink>
-      </div>
-
-      <p className="text-xs text-muted">
-        Not sure which patch format you have? See{" "}
-        <Link href="/patch-formats" className="text-accent-blue hover:underline">
-          IPS, UPS, BPS, and xdelta compared
-        </Link>
-        .
-      </p>
-    </div>
+          <p>
+            For a UPS or BPS patch, the{" "}
+            <InlineLink href="/patch-compatibility-checker">Patch Compatibility Checker</InlineLink>{" "}tells you
+            whether it matches your file as is or only without its header. IPS carries no checksum, so for
+            IPS the patch&apos;s readme is the authority on headered versus headerless.
+          </p>
+        </>
+      }
+      feature={{
+        icon: <IconFileQuestion />,
+        title: "The Copier Header, Explained",
+        accent: "purple",
+        body: (
+          <>
+            <p>
+              Old SNES copiers added 512 extra bytes to the front of a dump. Some ROM files still carry them
+              and some do not, and the .smc or .sfc extension does not tell you which. A patch built for one
+              state will not line up with the other, which is the most common reason a correct SNES patch
+              still fails.
+            </p>
+            <p>
+              For UPS and BPS the patcher uses the patch&apos;s checksum to decide. If it matches your whole
+              file, the patch is applied as is. If it matches only the file without its 512 bytes, the header
+              is set aside, the patch applied, and the header put back, so your output keeps its header.
+              Headers are recognised on .sfc, .smc, .swc and .fig files.
+            </p>
+            <p>
+              IPS has no checksum to decide with, so the patcher applies it to exactly the file you give it.
+              If a hack&apos;s readme says it needs a headerless ROM, give it a headerless one.
+            </p>
+          </>
+        ),
+      }}
+      howTo={{
+        name: "How to Patch an SNES ROM",
+        description: "Steps to apply an IPS, UPS, or BPS patch to an SNES ROM using a browser-based patcher.",
+        steps: [
+          {
+            title: "Start with your .sfc or .smc ROM",
+            body: "Both extensions are common for SNES dumps. Neither tells you whether a copier header is present.",
+          },
+          {
+            title: "Get the patch that matches your copy",
+            body: "SNES hacks come as IPS, UPS or BPS depending on the project's age. Read the notes for the header state and revision.",
+          },
+          {
+            title: "Select both files",
+            body: "For UPS and BPS the header question is settled by the patch's checksum. For IPS your file is used as is.",
+          },
+          {
+            title: "Download the patched ROM",
+            body: "It has the same header state as the file you gave it and loads in any SNES emulator.",
+          },
+        ],
+      }}
+      mistakesTitle="Mistakes That Trip Up SNES Patching"
+      mistakes={[
+        {
+          problem: "Not knowing whether the ROM has a copier header",
+          solution:
+            "Check it with the ROM Checksum Checker before patching. A file that is 512 bytes over a round size usually carries one.",
+        },
+        {
+          problem: "Using an IPS patch with the opposite header state",
+          solution:
+            "A patch made for a headered ROM expects those 512 bytes and one made for a headerless dump does not. IPS cannot tell, so the result is quietly wrong when this is backwards.",
+        },
+        {
+          problem: "Assuming IPS will catch a wrong-ROM mistake",
+          solution:
+            "Plenty of SNES hacks still use IPS, which has no verification built in. Newer BPS projects will catch this for you; IPS-based ones will not.",
+        },
+      ]}
+      troubleshooting={[
+        {
+          problem: "A UPS or BPS patch is rejected",
+          solution:
+            "The message names the CRC32 the patch needs. If your file only differs by a copier header, the patcher already handles that, so the cause is usually a different region or revision.",
+        },
+        {
+          problem: "IPS patch applies but the game is broken",
+          solution:
+            "Since IPS cannot verify the source ROM, this usually means the wrong revision or region, or the wrong header state. Compare the CRC32 and read the readme.",
+        },
+        {
+          problem: "Output file size looks different from what I expected",
+          solution:
+            "The copier header, if your file had one, is kept in the output, so the size matches your input unless the patch itself changes the ROM size.",
+        },
+      ]}
+      faq={[
+        {
+          question: "What is a SNES copier header?",
+          answer:
+            "A 512-byte block some old dumps carry at the start, left over from copier hardware. It is not part of the game itself.",
+        },
+        {
+          question: "Does this patcher handle the copier header for me?",
+          answer:
+            "For UPS and BPS, yes: it recognises the header on .sfc, .smc, .swc and .fig files and uses the patch's checksum to apply the patch correctly either way. IPS is applied to the file exactly as supplied.",
+        },
+        {
+          question: "Which patch format is most common for SNES hacks?",
+          answer:
+            "IPS historically, with UPS and BPS common for translations and newer or larger projects.",
+        },
+        {
+          question: "Why do some SNES ROMs end in .smc and others in .sfc?",
+          answer:
+            "Both are common extensions for the same ROM data. The extension alone does not say whether a copier header is present.",
+        },
+      ]}
+      related={[
+        { href: "/", title: "ROM Patcher", description: "The general-purpose patcher for any console." },
+        { href: "/ips-patcher", title: "IPS Patcher", description: "How IPS works and what it cannot check." },
+        { href: "/bps-patcher", title: "BPS Patcher", description: "Checksum-verified patching for newer projects." },
+        { href: "/nes-rom-patcher", title: "NES ROM Patcher", description: "The same header question for NES dumps." },
+        { href: "/rom-checksum-checker", title: "ROM Checksum Checker", description: "Detect a copier header and LoROM/HiROM." },
+        { href: "/patch-compatibility-checker", title: "Patch Compatibility Checker", description: "See how a UPS or BPS patch matches your file." },
+      ]}
+      footer={
+        <>
+          Not sure which format your patch is? See{" "}
+          <InlineLink href="/patch-formats">how IPS, UPS, and BPS compare</InlineLink>.
+        </>
+      }
+    />
   );
 }

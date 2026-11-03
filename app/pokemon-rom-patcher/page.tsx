@@ -53,7 +53,7 @@ const faqItems = [
   {
     question: "What is the base ROM for Pokemon Unbound?",
     answer:
-      "Pokemon Unbound is also built on Pokemon FireRed 1.0 (USA) and is distributed as a BPS patch. It requires a clean, unheadered ROM file.",
+      "Pokemon Unbound is also built on Pokemon FireRed, and community guides point to a clean 1.0 (USA) ROM. Guides report UPS or IPS patches, so confirm the format on the official release page.",
   },
   {
     question: "What is the base ROM for Pokemon Gaia?",

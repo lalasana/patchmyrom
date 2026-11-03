@@ -62,7 +62,7 @@ function Art({ name }: { name: CardArtName }): ReactNode {
             <rect x="82" y="10" width="76" height="100" rx="10" fill="url(#ca-cart)" stroke={INK} strokeWidth="3" />
             <rect x="90" y="14" width="60" height="6" rx="3" fill="#fff" fillOpacity="0.2" />
             <rect x="92" y="26" width="56" height="46" rx="6" fill="#0b0d26" stroke={GREEN} strokeOpacity="0.65" strokeWidth="1.8" />
-            <image href="/brand/icon-192.png" x="102" y="30" width="36" height="38" preserveAspectRatio="xMidYMid meet" />
+            <image href="/brand/icon-192.webp" x="102" y="30" width="36" height="38" preserveAspectRatio="xMidYMid meet" />
             {Array.from({ length: 7 }).map((_, i) => (
               <rect key={i} x={94 + i * 8} y="92" width="5" height="12" rx="1" fill={BLUE} />
             ))}
@@ -491,7 +491,7 @@ export function BrandArt({ className = "h-24 w-24" }: { className?: string }) {
   return (
     <Image
       aria-hidden
-      src="/brand/icon-192.png"
+      src="/brand/icon-192.webp"
       alt=""
       width={192}
       height={192}

@@ -1,25 +1,7 @@
-import PageHero from "@/components/ui/PageHero";
-import { BrandArt } from "@/components/ui/CardArt";
 import type { Metadata } from "next";
-import Link from "next/link";
-import GbaEmulatorCta from "@/components/ui/GbaEmulatorCta";
-import Breadcrumbs from "@/components/ui/Breadcrumbs";
-import RelatedGuides from "@/components/ui/RelatedGuides";
-import TroubleshootingCard from "@/components/ui/TroubleshootingCard";
-import FaqAccordion from "@/components/ui/FaqAccordion";
-import SectionHeading from "@/components/ui/SectionHeading";
-import JsonLd from "@/components/seo/JsonLd";
-import { ButtonLink } from "@/components/ui/Button";
-import { FormatChip } from "@/components/ui/FormatBadge";
-import {
-  IconInfo,
-  IconLayers,
-  IconAlertTriangle,
-  IconDatabase,
-  IconMonitorX,
-  IconCartridge,
-  IconArrowRight,
-} from "@/components/ui/icons";
+import ToolPage from "@/components/tool/ToolPage";
+import InlineLink from "@/components/ui/InlineLink";
+import { IconCartridge } from "@/components/ui/icons";
 import { buildPageMetadata } from "@/lib/seo";
 
 export const metadata: Metadata = buildPageMetadata({
@@ -29,235 +11,169 @@ export const metadata: Metadata = buildPageMetadata({
   path: "/gba-rom-patcher",
 });
 
-const steps = [
-  {
-    title: "Start with a clean .gba file",
-    body: "Your own legally-dumped backup, unmodified by cheats, trainers, or a previous patch attempt.",
-  },
-  {
-    title: "Get the patch that matches it",
-    body: "Check the hack's page for the required region and revision before downloading anything.",
-  },
-  {
-    title: "Select both files below",
-    body: "The patcher reads the patch format automatically, whether it's IPS, UPS, or BPS.",
-  },
-  {
-    title: "Download and load it up",
-    body: "The output keeps the .gba extension so it drops straight into any GBA-compatible emulator.",
-  },
-];
-
-const mistakes = [
-  {
-    problem: "Not checking the ROM revision first",
-    solution:
-      "GBA games often had multiple regional releases with slightly different data. A patch built for one revision can fail or misbehave on another.",
-    icon: <IconDatabase />,
-  },
-  {
-    problem: "Patching a ROM with an existing header or trainer attached",
-    solution:
-      "Some GBA dumps pick up extra bytes from the tool that created them. Start from a plain, unmodified dump whenever possible.",
-    icon: <IconAlertTriangle />,
-  },
-  {
-    problem: "Mixing up patch formats between hacks",
-    solution:
-      "GBA hacks show up in IPS, UPS, and BPS depending on when and by whom they were made — the patcher detects this for you, so there's no need to guess.",
-    icon: <IconLayers />,
-  },
-];
-
-const troubleshooting = [
-  {
-    problem: "Emulator shows a black or white screen after patching",
-    solution:
-      "Usually a base ROM mismatch. Re-check the exact region and revision the patch's documentation lists, not just the game title.",
-    icon: <IconMonitorX />,
-  },
-  {
-    problem: "Patch is rejected before it even applies",
-    solution:
-      "If the format is UPS or BPS, this means the checksum built into the patch doesn't match your file — a strong signal you have the wrong ROM version.",
-    icon: <IconDatabase />,
-  },
-  {
-    problem: "Patched file plays but looks or sounds wrong",
-    solution:
-      "That's typically a hack-content issue once the patch has applied successfully — worth checking the project's own known-issues list.",
-    icon: <IconAlertTriangle />,
-  },
-];
-
-const faqItems = [
-  {
-    question: "Which patch formats do GBA ROM hacks use?",
-    answer: "All three of the common ones — IPS, UPS, and BPS — show up regularly. Older or smaller hacks lean IPS; newer or larger ones increasingly use BPS.",
-  },
-  {
-    question: "Do GBA ROMs need a header removed before patching?",
-    answer: "Not typically. GBA dumps are usually header-free by default, unlike some older cartridge-based systems that used copier headers.",
-  },
-  {
-    question: "Why are there so many GBA ROM hacks compared to other consoles?",
-    answer: "The GBA's ROM size and hardware struck a balance that made it approachable for hobbyist development tools, and that drew a large, long-running hacking community.",
-  },
-  {
-    question: "Can I patch a GBA ROM on my phone?",
-    answer: "Yes — since patching happens in the browser itself, it works on mobile browsers the same way it does on desktop.",
-  },
-];
-
 export default function GbaRomPatcherPage() {
-  const howToJsonLd = {
-    "@context": "https://schema.org",
-    "@type": "HowTo",
-    name: "How to Patch a GBA ROM",
-    description: "Steps to apply an IPS, UPS, or BPS patch to a Game Boy Advance ROM using a browser-based patcher.",
-    step: steps.map((step) => ({
-      "@type": "HowToStep",
-      name: step.title,
-      text: step.body,
-    })),
-  };
-
   return (
-    <div className="container-page flex flex-col gap-10 py-10 sm:py-14">
-      <JsonLd data={howToJsonLd} />
-      <Breadcrumbs items={[{ href: "/gba-rom-patcher", label: "GBA ROM Patcher" }]} />
-
-      <PageHero art="cartridge" accent="purple">
-<h1 className="text-3xl font-bold text-foreground sm:text-4xl">GBA ROM Patcher</h1>
-        <p className="max-w-2xl text-muted sm:text-lg">
-          Game Boy Advance ROMs make up the largest share of ROM hacking activity out there. This
-          patcher handles the formats they typically ship in, entirely in your browser.
+    <ToolPage
+      path="/gba-rom-patcher"
+      breadcrumbLabel="GBA ROM Patcher"
+      art="cartridge"
+      accent="purple"
+      title="GBA ROM Patcher"
+      intro={
+        <p>
+          Patch a Game Boy Advance ROM with an IPS, UPS or BPS file, right on this page. The files are
+          read and patched in your browser, so nothing is uploaded.
         </p>
-        <div className="flex gap-2">
-          <FormatChip format="IPS" />
-          <FormatChip format="UPS" />
-          <FormatChip format="BPS" />
-        </div>
-      </PageHero>
-
-      <section className="flex flex-col gap-4">
-        <SectionHeading icon={<IconCartridge />} title="Why GBA Dominates ROM Hacking" accent="green" />
-        <div className="card border-l-4 border-l-accent-green p-5">
-          <p className="max-w-3xl text-muted">
-            The Game Boy Advance sits in a comfortable middle ground: ROMs are large enough to
-            support ambitious new content, but small enough that early, hobbyist hacking tools
-            could actually work with them. That combination built one of the biggest and
-            longest-running ROM hacking communities of any console, and it&apos;s still where a huge
-            share of new hacks get released.
+      }
+      chips={["IPS", "UPS", "BPS"]}
+      patcher={{
+        heading: "Patch a GBA ROM",
+        romLabel: "Original GBA ROM",
+        romHint: "Your own .gba dump",
+        patchHint: "Usually .ips, .ups or .bps",
+      }}
+      verify={
+        <>
+          <p>
+            Most GBA hacks name the exact game, region and revision they were built for. Drop your .gba
+            file into the <InlineLink href="/rom-checksum-checker">ROM Checksum Checker</InlineLink>{" "}to see
+            its CRC32, MD5, SHA-1 and SHA-256 and to confirm from the cartridge header that it really is a
+            GBA ROM, then compare those values with the hack&apos;s page.
           </p>
-        </div>
-      </section>
-
-      <section className="flex flex-col gap-4">
-        <SectionHeading icon={<IconLayers />} title="Step-by-Step" accent="blue" />
-        <div className="grid gap-4 sm:grid-cols-2">
-          {steps.map((step, index) => (
-            <div key={step.title} className="card flex gap-4 p-5">
-              <span className="flex h-10 w-10 flex-none items-center justify-center rounded-xl bg-gradient-to-br from-accent-green to-accent-blue text-base font-extrabold text-background shadow-[0_6px_16px_-4px_rgba(57,224,127,0.6)]">
-                {index + 1}
-              </span>
-              <div>
-                <h3 className="text-base font-semibold text-foreground">{step.title}</h3>
-                <p className="mt-1 text-sm text-muted">{step.body}</p>
-              </div>
-            </div>
-          ))}
-        </div>
-        <div>
-          <ButtonLink href="/" variant="primary" className="w-fit">
-            Patch a GBA ROM now
-            <IconArrowRight className="h-4 w-4" />
-          </ButtonLink>
-        </div>
-        <GbaEmulatorCta placement="gba_page" />
-      </section>
-
-      <section className="flex flex-col gap-4">
-        <SectionHeading icon={<IconAlertTriangle />} title="Mistakes That Trip Up GBA Patching" accent="amber" />
-        <div className="grid gap-4 sm:grid-cols-3">
-          {mistakes.map((item) => (
-            <TroubleshootingCard
-              key={item.problem}
-              problem={item.problem}
-              solution={item.solution}
-              icon={item.icon}
-            />
-          ))}
-        </div>
-      </section>
-
-      <section className="flex flex-col gap-4">
-        <SectionHeading icon={<IconMonitorX />} title="Troubleshooting" accent="amber" />
-        <div className="grid gap-4 sm:grid-cols-3">
-          {troubleshooting.map((item) => (
-            <TroubleshootingCard
-              key={item.problem}
-              problem={item.problem}
-              solution={item.solution}
-              icon={item.icon}
-              href="/troubleshooting"
-            />
-          ))}
-        </div>
-      </section>
-
-      <section className="flex flex-col gap-4">
-        <SectionHeading icon={<IconInfo />} title="FAQ" accent="blue" />
-        <FaqAccordion items={faqItems} />
-      </section>
-
-      <section className="flex flex-col gap-4">
-        <SectionHeading icon={<IconLayers />} title="Related Guides" accent="blue" />
-        <RelatedGuides
-          items={[
-            {
-              href: "/",
-              title: "ROM Patcher",
-              description: "Patch a ROM file directly in your browser.",
-            },
-            {
-              href: "/ips-patcher",
-              title: "IPS Patcher",
-              description: "The oldest, simplest format — still common for GBA hacks.",
-            },
-            {
-              href: "/bps-patcher",
-              title: "BPS Patcher",
-              description: "Checksum-verified patching, popular for newer GBA hacks.",
-            },
-            {
-              href: "/pokemon-rom-patcher",
-              title: "Pokemon ROM Patcher",
-              description: "Base ROM reference for 50 popular GBA-era Pokemon ROM hacks.",
-            },
-          ]}
-        />
-      </section>
-
-      <div className="card relative flex flex-col items-center gap-4 overflow-hidden rounded-3xl bg-gradient-to-br from-accent-green/10 via-card to-accent-blue/10 p-8 text-center">
-        <BrandArt className="h-20 w-20" />
-        <p className="text-sm text-muted">
-          Ready when you are — the patcher below reads GBA ROMs and IPS/UPS/BPS patches without
-          any setup.
-        </p>
-        <ButtonLink href="/" variant="primary" className="w-fit">
-          Open the ROM Patcher
-          <IconArrowRight className="h-4 w-4" />
-        </ButtonLink>
-      </div>
-
-      <p className="text-xs text-muted">
-        Not sure which format your patch is? See{" "}
-        <Link href="/patch-formats" className="text-accent-blue hover:underline">
-          how IPS, UPS, and BPS compare
-        </Link>
-        .
-      </p>
-    </div>
+          <p>
+            For a UPS or BPS patch you can also test the match before patching with the{" "}
+            <InlineLink href="/patch-compatibility-checker">Patch Compatibility Checker</InlineLink>. The
+            patcher above runs the same check automatically and stops with a plain explanation if the ROM
+            is the wrong one or is already patched.
+          </p>
+        </>
+      }
+      feature={{
+        icon: <IconCartridge />,
+        title: "What Is Specific to GBA",
+        accent: "green",
+        body: (
+          <>
+            <p>
+              A GBA cartridge can hold up to 32 MB of ROM, but an IPS patch cannot write past 16 MB. Hacks
+              that grow the game into the upper half of that space therefore ship as UPS or BPS, which is
+              one reason you will see all three formats on GBA. The patcher reads the format from the
+              patch file itself, so you never have to guess.
+            </p>
+            <p>
+              GBA dumps do not use a copier header the way NES and SNES dumps can, so there is nothing to
+              strip first. The patcher also leaves the GBA header alone: it writes exactly the bytes the
+              patch contains, and for UPS and BPS it then checks the result against the checksum stored in
+              the patch.
+            </p>
+            <p>
+              The base ROM matters more than anything else. Pokémon hacks are the classic case, where a
+              different revision of the same game is a different file; the{" "}
+              <InlineLink href="/pokemon-rom-patcher">Pokémon ROM Patcher reference</InlineLink>{" "}lists
+              the base game commonly reported for 50 popular hacks.
+            </p>
+          </>
+        ),
+      }}
+      howTo={{
+        name: "How to Patch a GBA ROM",
+        description: "Steps to apply an IPS, UPS, or BPS patch to a Game Boy Advance ROM using a browser-based patcher.",
+        steps: [
+          {
+            title: "Confirm the base ROM",
+            body: "Read the hack's page for the required game, region and revision, and compare your file's CRC32 with the one it lists.",
+          },
+          {
+            title: "Drop in the .gba file and the patch",
+            body: "The format comes from the patch file's contents, not its extension, so a renamed file is still recognised.",
+          },
+          {
+            title: "Read the verdict",
+            body: "UPS and BPS stop with an explanation when the ROM is wrong or already patched. IPS has no checksum, so it cannot warn you.",
+          },
+          {
+            title: "Download and load it",
+            body: "The result is named after your ROM with “(patched)” added and keeps the .gba extension.",
+          },
+        ],
+      }}
+      mistakesTitle="Mistakes That Trip Up GBA Patching"
+      mistakes={[
+        {
+          problem: "Not checking the ROM revision first",
+          solution:
+            "GBA games often had several regional releases and revisions with different data. A patch built for one can fail or misbehave on another; match the region and revision, not just the title.",
+        },
+        {
+          problem: "Patching a ROM that is already modified",
+          solution:
+            "Cheats, a previous patch or a randomizer change the bytes the patch expects. A UPS or BPS patch will tell you the ROM is already patched; an IPS patch will not. Start from the clean dump.",
+        },
+        {
+          problem: "Using an IPS patch for a hack that outgrew it",
+          solution:
+            "IPS cannot address beyond 16 MB. If a hack is distributed as UPS or BPS, use that file; converting or guessing rarely helps.",
+        },
+      ]}
+      troubleshooting={[
+        {
+          problem: "Emulator shows a black or white screen after patching",
+          solution:
+            "Usually a base ROM mismatch, most often with an IPS patch that could not check it. Re-check the exact region and revision in the hack's documentation and compare the CRC32.",
+        },
+        {
+          problem: "Patch is rejected before it even applies",
+          solution:
+            "For UPS and BPS this means the checksum stored in the patch does not match your file, a strong sign you have a different revision. The message names the CRC32 the patch needs.",
+        },
+        {
+          problem: "Patched file plays but looks or sounds wrong",
+          solution:
+            "Once a UPS or BPS patch has passed its checks, the file is exactly what the author made. Odd behaviour then is a hack issue, so check the project's known-issues list.",
+        },
+      ]}
+      faq={[
+        {
+          question: "Which patch formats do GBA ROM hacks use?",
+          answer:
+            "IPS, UPS and BPS all appear. Small or older hacks are often IPS; hacks that grow the ROM past 16 MB need UPS or BPS, and many newer projects use BPS for its built-in checksums.",
+        },
+        {
+          question: "Do GBA ROMs need a header removed before patching?",
+          answer:
+            "No. GBA dumps do not carry a copier header, so the patcher applies the patch to the file as it is.",
+        },
+        {
+          question: "Does the patcher fix the GBA header checksum?",
+          answer:
+            "No. It writes exactly what the patch contains. The only header checksums it ever adjusts are Game Boy and Mega Drive ones, and only for patches that do not define the output exactly.",
+        },
+        {
+          question: "Why are there so many GBA ROM hacks compared to other consoles?",
+          answer:
+            "No single cause is documented. Likely contributors: the system is well understood, its ROMs are small enough for hobbyist tools, and mature community tools and decompilation projects exist for popular games.",
+        },
+        {
+          question: "Can I patch a GBA ROM on my phone?",
+          answer:
+            "Yes, patching happens in the browser, so it works in mobile browsers too. GBA ROMs are at most 32 MB, which is comfortable for current phones.",
+        },
+      ]}
+      related={[
+        { href: "/", title: "ROM Patcher", description: "The general-purpose patcher for any console." },
+        { href: "/ips-patcher", title: "IPS Patcher", description: "The simplest format, and its 16 MB limit." },
+        { href: "/bps-patcher", title: "BPS Patcher", description: "Checksum-verified patching, common for newer GBA hacks." },
+        { href: "/pokemon-rom-patcher", title: "Pokemon ROM Patcher", description: "Base ROM reference for 50 popular Pokemon ROM hacks." },
+        { href: "/rom-checksum-checker", title: "ROM Checksum Checker", description: "Compare your ROM's CRC32 with the hack's page." },
+        { href: "/patch-compatibility-checker", title: "Patch Compatibility Checker", description: "Test a ROM against a patch before applying it." },
+      ]}
+      emulatorCta={{ placement: "gba_page" }}
+      footer={
+        <>
+          Not sure which format your patch is? See{" "}
+          <InlineLink href="/patch-formats">how IPS, UPS, and BPS compare</InlineLink>.
+        </>
+      }
+    />
   );
 }

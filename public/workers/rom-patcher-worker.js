@@ -198,6 +198,18 @@ self.onmessage = function (event) {
         if (verdict.blocking) throw coded(verdict.code, PatchCompat.toPlainText(verdict));
       }
 
+      // A copier/iNES header is set aside only when something can confirm the header-less view is the
+      // one the patch was built for. IPS (and other formats with no source checksum) carry no such
+      // proof and nothing verifies their output, so they apply to the file exactly as supplied, as
+      // desktop patchers do; stripping first would shift every IPS offset by the header size when the
+      // patch was made against the headered file. A BPS/UPS whose source checksum already matches
+      // the whole file is likewise applied to the whole file. xdelta keeps the header-less route:
+      // its output is verified afterwards, so a wrong choice is refused rather than handed over.
+      if (options.removeHeader && vcdiff === null && (!declared.sourceCrc32 || (typeof romCrc32 === "string" && romCrc32 === declared.sourceCrc32))) {
+        options = Object.assign({}, options, { removeHeader: false });
+        romHeaderInfo = null; // output verification below must cover the whole file, too
+      }
+
       // A patch that promises an exact output checksum defines the output byte for byte;
       // the library's post-patch header "fix-up" (Game Boy / Mega Drive) would silently
       // rewrite those bytes and make a correct result look corrupted.

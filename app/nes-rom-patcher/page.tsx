@@ -1,257 +1,179 @@
-import PageHero from "@/components/ui/PageHero";
-import { BrandArt } from "@/components/ui/CardArt";
 import type { Metadata } from "next";
-import Link from "next/link";
-import Breadcrumbs from "@/components/ui/Breadcrumbs";
-import RelatedGuides from "@/components/ui/RelatedGuides";
-import TroubleshootingCard from "@/components/ui/TroubleshootingCard";
-import FaqAccordion from "@/components/ui/FaqAccordion";
-import SectionHeading from "@/components/ui/SectionHeading";
-import JsonLd from "@/components/seo/JsonLd";
-import { ButtonLink } from "@/components/ui/Button";
-import { FormatChip } from "@/components/ui/FormatBadge";
-import {
-  IconInfo,
-  IconLayers,
-  IconAlertTriangle,
-  IconDatabase,
-  IconMonitorX,
-  IconArrowRight,
-} from "@/components/ui/icons";
+import ToolPage from "@/components/tool/ToolPage";
+import InlineLink from "@/components/ui/InlineLink";
+import { IconInfo } from "@/components/ui/icons";
 import { buildPageMetadata } from "@/lib/seo";
 
 export const metadata: Metadata = buildPageMetadata({
   title: "NES ROM Patcher — Patch NES ROMs Online",
   description:
-    "Apply IPS patches to an NES ROM directly in your browser — the format that started ROM hacking in the first place.",
+    "Apply IPS, UPS or BPS patches to an NES ROM directly in your browser, applied to your file exactly as it is, iNES header included.",
   path: "/nes-rom-patcher",
 });
 
-const steps = [
-  {
-    title: "Get a clean .nes ROM",
-    body: "An unmodified dump of the original cartridge, without any header oddities from an unusual dumping tool.",
-  },
-  {
-    title: "Download the .ips patch",
-    body: "NES hacking has used IPS since long before most other formats existed, so this is what you'll almost always find.",
-  },
-  {
-    title: "Load both into the patcher",
-    body: "The format is detected from the patch file itself — no configuration needed.",
-  },
-  {
-    title: "Download and play",
-    body: "The result keeps the iNES header intact, so it loads normally in any NES emulator.",
-  },
-];
-
-const mistakes = [
-  {
-    problem: "Using a ROM with a non-standard or stripped header",
-    solution:
-      "NES ROMs typically carry a small iNES header identifying the cartridge's mapper and layout. A ROM missing or altering that header can behave unpredictably once patched.",
-    icon: <IconDatabase />,
-  },
-  {
-    problem: "Applying a patch built for a different mapper or region",
-    solution:
-      "Two NES cartridges of \"the same game\" sometimes used different hardware mappers between regions. Match the patch to the exact version it lists.",
-    icon: <IconAlertTriangle />,
-  },
-  {
-    problem: "Expecting the patch to flag a wrong ROM",
-    solution:
-      "IPS has no built-in verification. If the base ROM is wrong, the patch will still apply — just incorrectly.",
-    icon: <IconLayers />,
-  },
-];
-
-const troubleshooting = [
-  {
-    problem: "Screen is garbled or the game resets constantly",
-    solution:
-      "A classic sign the base ROM didn't match the patch. Since IPS can't verify this beforehand, check the exact revision and mapper the hack expects.",
-    icon: <IconMonitorX />,
-  },
-  {
-    problem: "Emulator doesn't recognize the patched file at all",
-    solution:
-      "Confirm the file still starts with a valid iNES header — some tools strip or rewrite it unexpectedly when handling older ROM formats.",
-    icon: <IconDatabase />,
-  },
-  {
-    problem: "Patch applies cleanly but graphics are missing",
-    solution:
-      "That points to a mapper mismatch rather than a patching failure — the ROM's hardware bank layout doesn't match what the hack assumes.",
-    icon: <IconAlertTriangle />,
-  },
-];
-
-const faqItems = [
-  {
-    question: "Why is IPS so tied to NES specifically?",
-    answer: "IPS was created during the earliest era of ROM hacking, when NES and SNES translation projects were some of the only ones happening. It's stuck around ever since as the format's home turf.",
-  },
-  {
-    question: "What is the iNES header?",
-    answer: "A short block at the start of most NES ROM files that describes the cartridge's mapper and memory layout. Patchers and emulators both read it to know how to handle the rest of the file.",
-  },
-  {
-    question: "Does patch size matter for NES ROMs?",
-    answer: "Rarely — NES ROMs are small by nearly any modern patch format's standards, so size limits that matter on bigger platforms don't come up here.",
-  },
-  {
-    question: "Can I patch an NES ROM without deleting my emulator save?",
-    answer: "Patching only changes the game file itself. Save data tied to your emulator is stored separately and isn't affected by applying a patch.",
-  },
-];
-
 export default function NesRomPatcherPage() {
-  const howToJsonLd = {
-    "@context": "https://schema.org",
-    "@type": "HowTo",
-    name: "How to Patch an NES ROM",
-    description: "Steps to apply an IPS patch to an NES ROM using a browser-based patcher.",
-    step: steps.map((step) => ({
-      "@type": "HowToStep",
-      name: step.title,
-      text: step.body,
-    })),
-  };
-
   return (
-    <div className="container-page flex flex-col gap-10 py-10 sm:py-14">
-      <JsonLd data={howToJsonLd} />
-      <Breadcrumbs items={[{ href: "/nes-rom-patcher", label: "NES ROM Patcher" }]} />
-
-      <PageHero art="cartridge" accent="amber">
-<h1 className="text-3xl font-bold text-foreground sm:text-4xl">NES ROM Patcher</h1>
-        <p className="max-w-2xl text-muted sm:text-lg">
-          NES ROM hacking is where IPS came from in the first place. This tool applies those
-          patches the same way it handles everything newer — locally, in your browser.
+    <ToolPage
+      path="/nes-rom-patcher"
+      breadcrumbLabel="NES ROM Patcher"
+      art="cartridge"
+      accent="amber"
+      title="NES ROM Patcher"
+      intro={
+        <p>
+          Apply an IPS, UPS or BPS patch to an NES ROM right on this page. IPS is by far the most common
+          format for NES hacks, and it is applied to your file exactly as you provide it, iNES header and
+          all.
         </p>
-        <div>
-          <FormatChip format="IPS" />
-        </div>
-      </PageHero>
-
-      <section className="flex flex-col gap-4">
-        <SectionHeading icon={<IconInfo />} title="The Format That Started It All" accent="green" />
-        <div className="card border-l-4 border-l-accent-green p-5">
-          <p className="max-w-3xl text-muted">
-            Long before Game Boy Advance or Nintendo DS hacking existed, NES and SNES translation
-            groups needed a way to share their work without redistributing copyrighted ROMs. IPS
-            was the answer, and NES hacking has stayed close to it ever since. Most NES ROMs are
-            small enough that IPS&apos;s size ceiling never becomes a practical issue, so there&apos;s
-            rarely a reason for a project to move to anything newer.
+      }
+      chips={["IPS", "UPS", "BPS"]}
+      patcher={{
+        heading: "Patch an NES ROM",
+        defaultFormat: "IPS",
+        romLabel: "Original NES ROM",
+        romHint: "Your own .nes dump",
+        patchHint: "Usually .ips; .ups and .bps also work",
+      }}
+      verify={
+        <>
+          <p>
+            An IPS patch cannot tell whether you gave it the right file, so check before patching. The{" "}
+            <InlineLink href="/rom-checksum-checker">ROM Checksum Checker</InlineLink>{" "}reads the iNES header,
+            reports it, and shows the CRC32, MD5, SHA-1 and SHA-256 to compare with the hack&apos;s readme.
           </p>
-        </div>
-      </section>
-
-      <section className="flex flex-col gap-4">
-        <SectionHeading icon={<IconLayers />} title="Step-by-Step" accent="blue" />
-        <div className="grid gap-4 sm:grid-cols-2">
-          {steps.map((step, index) => (
-            <div key={step.title} className="card flex gap-4 p-5">
-              <span className="flex h-10 w-10 flex-none items-center justify-center rounded-xl bg-gradient-to-br from-accent-green to-accent-blue text-base font-extrabold text-background shadow-[0_6px_16px_-4px_rgba(57,224,127,0.6)]">
-                {index + 1}
-              </span>
-              <div>
-                <h3 className="text-base font-semibold text-foreground">{step.title}</h3>
-                <p className="mt-1 text-sm text-muted">{step.body}</p>
-              </div>
-            </div>
-          ))}
-        </div>
-        <div>
-          <ButtonLink href="/" variant="primary" className="w-fit">
-            Patch an NES ROM now
-            <IconArrowRight className="h-4 w-4" />
-          </ButtonLink>
-        </div>
-      </section>
-
-      <section className="flex flex-col gap-4">
-        <SectionHeading icon={<IconAlertTriangle />} title="Mistakes That Trip Up NES Patching" accent="amber" />
-        <div className="grid gap-4 sm:grid-cols-3">
-          {mistakes.map((item) => (
-            <TroubleshootingCard
-              key={item.problem}
-              problem={item.problem}
-              solution={item.solution}
-              icon={item.icon}
-            />
-          ))}
-        </div>
-      </section>
-
-      <section className="flex flex-col gap-4">
-        <SectionHeading icon={<IconMonitorX />} title="Troubleshooting" accent="amber" />
-        <div className="grid gap-4 sm:grid-cols-3">
-          {troubleshooting.map((item) => (
-            <TroubleshootingCard
-              key={item.problem}
-              problem={item.problem}
-              solution={item.solution}
-              icon={item.icon}
-              href="/troubleshooting"
-            />
-          ))}
-        </div>
-      </section>
-
-      <section className="flex flex-col gap-4">
-        <SectionHeading icon={<IconInfo />} title="FAQ" accent="blue" />
-        <FaqAccordion items={faqItems} />
-      </section>
-
-      <section className="flex flex-col gap-4">
-        <SectionHeading icon={<IconLayers />} title="Related Guides" accent="blue" />
-        <RelatedGuides
-          items={[
-            {
-              href: "/",
-              title: "ROM Patcher",
-              description: "Patch a ROM file directly in your browser.",
-            },
-            {
-              href: "/ips-patcher",
-              title: "IPS Patcher",
-              description: "A closer look at the format behind almost every NES patch.",
-            },
-            {
-              href: "/snes-rom-patcher",
-              title: "SNES ROM Patcher",
-              description: "IPS's other classic home platform, from the same hacking era.",
-            },
-            {
-              href: "/troubleshooting",
-              title: "Troubleshooting",
-              description: "Fix common ROM patching errors and mismatches.",
-            },
-          ]}
-        />
-      </section>
-
-      <div className="card relative flex flex-col items-center gap-4 overflow-hidden rounded-3xl bg-gradient-to-br from-accent-green/10 via-card to-accent-blue/10 p-8 text-center">
-        <BrandArt className="h-20 w-20" />
-        <p className="text-sm text-muted">
-          Old format, same modern privacy guarantee — your ROM and patch stay on this device.
-        </p>
-        <ButtonLink href="/" variant="primary" className="w-fit">
-          Open the ROM Patcher
-          <IconArrowRight className="h-4 w-4" />
-        </ButtonLink>
-      </div>
-
-      <p className="text-xs text-muted">
-        Want more detail on the format itself? See the{" "}
-        <Link href="/ips-patcher" className="text-accent-blue hover:underline">
-          IPS patcher guide
-        </Link>
-        .
-      </p>
-    </div>
+          <p>
+            Readmes often say whether the patch expects a headered or a headerless ROM. If a UPS or BPS patch
+            is involved, the{" "}
+            <InlineLink href="/patch-compatibility-checker">Patch Compatibility Checker</InlineLink>{" "}can test
+            the match first, and the patcher above does the same before it applies anything.
+          </p>
+        </>
+      }
+      feature={{
+        icon: <IconInfo />,
+        title: "The iNES Header and Your Patch",
+        accent: "green",
+        body: (
+          <>
+            <p>
+              Most .nes files begin with a 16-byte iNES header: the letters NES and a 1A byte, then the
+              program and graphics sizes, the mapper number and other flags. The emulator reads it; the
+              console&apos;s game data starts right after.
+            </p>
+            <p>
+              IPS counts offsets from the first byte of the file, so a patch made against a headered ROM
+              needs a headered ROM, and one made against a headerless ROM needs a headerless one. PatchMyROM
+              applies IPS to exactly the file you give it and never strips the header behind your back; use
+              the version the patch&apos;s readme describes.
+            </p>
+            <p>
+              UPS and BPS can be checked. If the patch&apos;s checksum matches your whole file, it is applied
+              as is. If it matches only the file without its header, the header is set aside, the patch
+              applied, and the header put back.
+            </p>
+            <p>
+              NES ROMs are small, so IPS&apos;s 16 MB limit never comes up on this platform.
+            </p>
+          </>
+        ),
+      }}
+      howTo={{
+        name: "How to Patch an NES ROM",
+        description: "Steps to apply an IPS patch to an NES ROM using a browser-based patcher.",
+        steps: [
+          {
+            title: "Get an unmodified .nes ROM",
+            body: "A clean dump of the cartridge that is not already patched or edited. Note whether it has an iNES header.",
+          },
+          {
+            title: "Download the patch and read its notes",
+            body: "NES hacks are usually .ips files. The notes say which game revision and header state they expect.",
+          },
+          {
+            title: "Drop both files in",
+            body: "The format is detected from the patch file itself, so you do not need to choose it.",
+          },
+          {
+            title: "Download and play",
+            body: "The file keeps the header your ROM had and loads in any NES emulator.",
+          },
+        ],
+      }}
+      mistakesTitle="Mistakes That Trip Up NES Patching"
+      mistakes={[
+        {
+          problem: "Using a ROM whose header state does not match the patch",
+          solution:
+            "IPS offsets include the 16-byte header if the author counted it. Giving a headerless file to a headered patch, or the reverse, shifts every change by 16 bytes.",
+        },
+        {
+          problem: "Applying a patch built for a different release",
+          solution:
+            "Regional releases and revisions of the same game can differ in their data. Match the patch to the version its notes list.",
+        },
+        {
+          problem: "Expecting the patcher to flag a wrong ROM",
+          solution:
+            "IPS has no built-in verification. If the base ROM is wrong, the patch still applies, just incorrectly. Compare the CRC32 first.",
+        },
+      ]}
+      troubleshooting={[
+        {
+          problem: "Screen is garbled or the game resets constantly",
+          solution:
+            "A classic sign the base ROM did not match the patch. Because IPS cannot verify it, check the revision and the header state the hack expects.",
+        },
+        {
+          problem: "Emulator does not recognise the patched file",
+          solution:
+            "Confirm the file still starts with NES and a 1A byte. If you meant to patch a headerless file, the result will have no header either.",
+        },
+        {
+          problem: "Patch applies cleanly but graphics are missing",
+          solution:
+            "That points to a wrong or altered base ROM rather than a patching failure, since the patcher only writes the bytes in the patch. Re-check the dump and the header.",
+        },
+      ]}
+      faq={[
+        {
+          question: "Why is IPS so tied to NES specifically?",
+          answer:
+            "IPS is simple and tiny, and its 16 MB limit is no problem at NES scale, so there is little pressure to move to another format. Many tools still output it by default.",
+        },
+        {
+          question: "What is the iNES header?",
+          answer:
+            "A 16-byte block at the start of most NES ROM files that records the mapper and the memory layout. Emulators read it to know how to run the rest of the file.",
+        },
+        {
+          question: "Does patch size matter for NES ROMs?",
+          answer:
+            "Rarely. NES ROMs are small by any modern patch format's standards, so size limits that matter on bigger platforms do not come up here.",
+        },
+        {
+          question: "Does PatchMyROM remove the iNES header before patching?",
+          answer:
+            "Not for IPS, which is applied to your file as it is. For UPS and BPS it sets the header aside only when the patch's checksum shows the headerless file is the one it was built for.",
+        },
+        {
+          question: "Can I patch an NES ROM without deleting my emulator save?",
+          answer:
+            "No. Patching creates a new file and leaves your original ROM and your emulator's saves untouched.",
+        },
+      ]}
+      related={[
+        { href: "/", title: "ROM Patcher", description: "The general-purpose patcher for any console." },
+        { href: "/ips-patcher", title: "IPS Patcher", description: "How IPS works and what it cannot check." },
+        { href: "/snes-rom-patcher", title: "SNES ROM Patcher", description: "The same header question, with a copier header." },
+        { href: "/troubleshooting", title: "Troubleshooting", description: "Fixes for the most common patching errors." },
+        { href: "/rom-checksum-checker", title: "ROM Checksum Checker", description: "Read the iNES header and hash your ROM." },
+        { href: "/patch-compatibility-checker", title: "Patch Compatibility Checker", description: "Test a ROM against a UPS or BPS patch first." },
+      ]}
+      footer={
+        <>
+          Want the details of the format NES hacks use? See the <InlineLink href="/ips-patcher">IPS Patcher guide</InlineLink>.
+        </>
+      }
+    />
   );
 }
