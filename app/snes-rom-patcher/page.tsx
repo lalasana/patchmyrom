@@ -16,8 +16,7 @@ export default function SnesRomPatcherPage() {
     <ToolPage
       path="/snes-rom-patcher"
       breadcrumbLabel="SNES ROM Patcher"
-      art="cartridge"
-      accent="purple"
+      accent="amber"
       title="SNES ROM Patcher"
       intro={
         <p>
@@ -27,6 +26,24 @@ export default function SnesRomPatcherPage() {
         </p>
       }
       chips={["IPS", "UPS", "BPS"]}
+      platform="snes"
+      kicker="Super Nintendo · .sfc .smc"
+      facts={[
+        { label: "File types", value: ".sfc · .smc", note: "extension does not show the header" },
+        { label: "Copier header", value: "512 bytes", note: "recognised on .sfc .smc .swc .fig" },
+        { label: "BPS and UPS", value: "matched by checksum", note: "with or without the header" },
+        { label: "IPS", value: "your file as is", note: "needs the header state its readme names" },
+      ]}
+      diagram={{
+        title: "Headered or headerless: who decides",
+        caption: "For BPS and UPS the patch's checksum decides whether your file is used whole or without its 512 bytes, and the header is put back afterwards. IPS has no checksum, so it is applied to exactly the file you give it.",
+        rows: [
+          { label: "Headered file", segments: [{ label: "Copier header", sub: "512 bytes", tone: "accent" }, { label: "ROM data", grow: 5 }] },
+          { label: "Headerless file", segments: [{ label: "ROM data", grow: 5 }] },
+          { label: "BPS / UPS: the checksum decides", segments: [{ label: "Matches the whole file", sub: "patch as is", tone: "ok" }, { label: "Matches without the header", sub: "set aside, patch, restore", tone: "ok" }] },
+          { label: "IPS: no checksum", segments: [{ label: "Applied to your file exactly", sub: "wrong header state = silently wrong result", tone: "bad" }] },
+        ],
+      }}
       patcher={{
         heading: "Patch an SNES ROM",
         romLabel: "Original SNES ROM",
@@ -161,8 +178,6 @@ export default function SnesRomPatcherPage() {
         { href: "/ips-patcher", title: "IPS Patcher", description: "How IPS works and what it cannot check." },
         { href: "/bps-patcher", title: "BPS Patcher", description: "Checksum-verified patching for newer projects." },
         { href: "/nes-rom-patcher", title: "NES ROM Patcher", description: "The same header question for NES dumps." },
-        { href: "/rom-checksum-checker", title: "ROM Checksum Checker", description: "Detect a copier header and LoROM/HiROM." },
-        { href: "/patch-compatibility-checker", title: "Patch Compatibility Checker", description: "See how a UPS or BPS patch matches your file." },
       ]}
       footer={
         <>

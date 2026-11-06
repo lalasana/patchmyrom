@@ -16,8 +16,7 @@ export default function NesRomPatcherPage() {
     <ToolPage
       path="/nes-rom-patcher"
       breadcrumbLabel="NES ROM Patcher"
-      art="cartridge"
-      accent="amber"
+      accent="rose"
       title="NES ROM Patcher"
       intro={
         <p>
@@ -27,6 +26,22 @@ export default function NesRomPatcherPage() {
         </p>
       }
       chips={["IPS", "UPS", "BPS"]}
+      platform="nes"
+      kicker="Nintendo Entertainment System · .nes"
+      facts={[
+        { label: "File type", value: ".nes", note: "usually with an iNES header" },
+        { label: "iNES header", value: "16 bytes", note: "starts with NES and a 1A byte" },
+        { label: "IPS patches", value: "applied as is", note: "header state must match the patch" },
+        { label: "ROM size", value: "small", note: "well inside IPS's 16 MB reach" },
+      ]}
+      diagram={{
+        title: "The same IPS offset, two different files",
+        caption: "IPS counts offsets from the first byte of the file. A headered and a headerless ROM put the same game byte 16 positions apart, so the patch and your file must agree. PatchMyROM never strips the header for IPS behind your back.",
+        rows: [
+          { label: "Headered .nes", segments: [{ label: "iNES header", sub: "16 bytes", tone: "accent" }, { label: "PRG-ROM", sub: "program code", grow: 5 }, { label: "CHR-ROM", sub: "graphics, if any", grow: 3 }] },
+          { label: "Headerless", segments: [{ label: "PRG-ROM", sub: "program code", grow: 5 }, { label: "CHR-ROM", sub: "graphics, if any", grow: 3 }], note: "Offset 0 is the first PRG-ROM byte here, but the first header byte above." },
+        ],
+      }}
       patcher={{
         heading: "Patch an NES ROM",
         defaultFormat: "IPS",
@@ -166,8 +181,6 @@ export default function NesRomPatcherPage() {
         { href: "/ips-patcher", title: "IPS Patcher", description: "How IPS works and what it cannot check." },
         { href: "/snes-rom-patcher", title: "SNES ROM Patcher", description: "The same header question, with a copier header." },
         { href: "/troubleshooting", title: "Troubleshooting", description: "Fixes for the most common patching errors." },
-        { href: "/rom-checksum-checker", title: "ROM Checksum Checker", description: "Read the iNES header and hash your ROM." },
-        { href: "/patch-compatibility-checker", title: "Patch Compatibility Checker", description: "Test a ROM against a UPS or BPS patch first." },
       ]}
       footer={
         <>

@@ -26,6 +26,22 @@ export default function UpsPatcherPage() {
         </p>
       }
       chips={["UPS"]}
+      kicker="Patch format · .ups"
+      facts={[
+        { label: "Verifies", value: "source and output", note: "CRC32 of both" },
+        { label: "Also stores", value: "patch CRC32", note: "detects a damaged file" },
+        { label: "Stores changes as", value: "XOR differences", note: "not raw replacement bytes" },
+        { label: "Can resize a ROM", value: "yes", note: "both sizes are recorded" },
+      ]}
+      diagram={{
+        title: "Inside a UPS file",
+        caption: "A UPS file records the size and CRC32 of the ROM it needs and of the ROM it produces, plus a CRC32 of itself. PatchMyROM uses them to tell the right original, an already-patched ROM and the wrong file apart.",
+        rows: [
+          { label: "Structure", segments: [{ label: "UPS1", sub: "signature" }, { label: "Input size", tone: "accent" }, { label: "Output size", tone: "accent" }, { label: "XOR change blocks", grow: 3 }, { label: "Input CRC32", tone: "ok" }, { label: "Output CRC32", tone: "ok" }, { label: "Patch CRC32", tone: "muted" }] },
+          { label: "What PatchMyROM does with them", segments: [{ label: "Input CRC32", sub: "matches your ROM: patch it", tone: "ok" }, { label: "Output CRC32", sub: "matches your ROM: already patched, stop", tone: "muted" }, { label: "Neither matches", sub: "wrong ROM: stop and name both CRC32s", tone: "bad" }] },
+        ],
+      }}
+      layout="format"
       patcher={{
         heading: "Apply a UPS patch",
         defaultFormat: "UPS",
@@ -157,8 +173,6 @@ export default function UpsPatcherPage() {
         { href: "/patch-formats", title: "Patch Formats Compared", description: "IPS, UPS, BPS and xdelta side by side." },
         { href: "/bps-patcher", title: "BPS Patcher", description: "The newer checksum-verified format." },
         { href: "/troubleshooting", title: "Troubleshooting", description: "Fixes for checksum mismatches and wrong ROMs." },
-        { href: "/rom-checksum-checker", title: "ROM Checksum Checker", description: "Find which release your ROM is." },
-        { href: "/patch-compatibility-checker", title: "Patch Compatibility Checker", description: "Test a ROM against a UPS patch first." },
       ]}
       footer={
         <>

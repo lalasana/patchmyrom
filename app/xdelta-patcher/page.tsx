@@ -26,6 +26,22 @@ export default function XdeltaPatcherPage() {
         </p>
       }
       chips={["XDelta"]}
+      kicker="Patch format · .xdelta"
+      facts={[
+        { label: "Based on", value: "VCDIFF", note: "RFC 3284 binary diff" },
+        { label: "Checks your ROM", value: "not in advance", note: "output Adler-32 verified when present" },
+        { label: "Secondary compression", value: "none · LZMA", note: "DJW and FGK are refused" },
+        { label: "Best for", value: "large files", note: "DS-sized ROMs" },
+      ]}
+      diagram={{
+        title: "Which xdelta files work",
+        caption: "xdelta stores a list of copy, add and run instructions in windows. Patches may also compress those sections; PatchMyROM decodes none and LZMA, and tells you plainly when a patch uses DJW or FGK.",
+        rows: [
+          { label: "Secondary compression inside the patch", segments: [{ label: "None", sub: "supported", tone: "ok" }, { label: "LZMA", sub: "supported", tone: "ok" }, { label: "DJW", sub: "refused, named", tone: "bad" }, { label: "FGK", sub: "refused, named", tone: "bad" }] },
+          { label: "How a patch is applied", segments: [{ label: "Source ROM", sub: "read only", grow: 2 }, { label: "Windows of copy, add and run", grow: 4, tone: "accent" }, { label: "Adler-32 per window", sub: "verifies output, if present", grow: 2, tone: "ok" }, { label: "Patched ROM", grow: 2 }] },
+        ],
+      }}
+      layout="format"
       patcher={{
         heading: "Apply an xdelta patch",
         defaultFormat: "xdelta",
@@ -166,8 +182,6 @@ export default function XdeltaPatcherPage() {
         { href: "/patch-formats", title: "Patch Formats Compared", description: "IPS, UPS, BPS and xdelta side by side." },
         { href: "/nds-rom-patcher", title: "NDS ROM Patcher", description: "Where xdelta is used most: large DS ROMs." },
         { href: "/troubleshooting", title: "Troubleshooting", description: "Fixes for common patching errors." },
-        { href: "/rom-checksum-checker", title: "ROM Checksum Checker", description: "Hash your ROM, the best check before xdelta." },
-        { href: "/patch-compatibility-checker", title: "Patch Compatibility Checker", description: "See what can and cannot be verified." },
       ]}
       footer={
         <>

@@ -16,7 +16,6 @@ export default function GbcRomPatcherPage() {
     <ToolPage
       path="/gbc-rom-patcher"
       breadcrumbLabel="GBC ROM Patcher"
-      art="cartridge"
       accent="green"
       title="GBC ROM Patcher"
       intro={
@@ -27,6 +26,22 @@ export default function GbcRomPatcherPage() {
         </p>
       }
       chips={["IPS", "UPS", "BPS"]}
+      platform="gbc"
+      kicker="Game Boy / Game Boy Color · .gb .gbc"
+      facts={[
+        { label: "File types", value: ".gb · .gbc", note: "same patching, different base ROMs" },
+        { label: "Header checksum", value: "byte 0x14D", note: "covers header bytes 0x134-0x14C" },
+        { label: "Repaired for", value: "IPS only", note: "UPS and BPS define the exact output" },
+        { label: "Repair needs", value: "valid logo", note: "and a whole number of 16 KB banks" },
+      ]}
+      diagram={{
+        title: "Where the checksum lives",
+        caption: "The console's boot code compares the byte at 0x14D with a sum of 0x134-0x14C. PatchMyROM recalculates just that byte after an IPS patch; the global checksum at 0x14E-0x14F is not touched.",
+        rows: [
+          { label: "Cartridge header, 0x100-0x14F", segments: [{ label: "Entry point", sub: "0x100" }, { label: "Nintendo logo", sub: "0x104", grow: 3 }, { label: "Title, CGB flag", sub: "0x134", grow: 2 }, { label: "Licensee, type, sizes, version", sub: "0x144-0x14C", grow: 3 }, { label: "Header checksum", sub: "0x14D", grow: 2, tone: "accent" }, { label: "Global checksum", sub: "0x14E", grow: 2, tone: "muted" }] },
+          { label: "Fixed automatically?", segments: [{ label: "IPS", sub: "Yes, byte 0x14D", tone: "ok" }, { label: "UPS", sub: "No, exact output", tone: "muted" }, { label: "BPS", sub: "No, exact output", tone: "muted" }] },
+        ],
+      }}
       patcher={{
         heading: "Patch a GB / GBC ROM",
         romLabel: "Original GB or GBC ROM",
@@ -156,8 +171,6 @@ export default function GbcRomPatcherPage() {
         { href: "/ips-patcher", title: "IPS Patcher", description: "How IPS works and where its limits are." },
         { href: "/ups-patcher", title: "UPS Patcher", description: "Checksum-verified patching, also seen on Game Boy." },
         { href: "/nes-rom-patcher", title: "NES ROM Patcher", description: "Another small-ROM, header-sensitive platform." },
-        { href: "/rom-checksum-checker", title: "ROM Checksum Checker", description: "Identify GB versus GBC and read the CRC32." },
-        { href: "/patch-compatibility-checker", title: "Patch Compatibility Checker", description: "Test a ROM against a UPS or BPS patch first." },
       ]}
       emulatorCta={{ placement: "gbc_page" }}
       footer={

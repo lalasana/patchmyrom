@@ -16,7 +16,6 @@ export default function NdsRomPatcherPage() {
     <ToolPage
       path="/nds-rom-patcher"
       breadcrumbLabel="NDS ROM Patcher"
-      art="cartridge"
       accent="blue"
       title="NDS ROM Patcher"
       intro={
@@ -26,6 +25,22 @@ export default function NdsRomPatcherPage() {
         </p>
       }
       chips={["XDelta"]}
+      platform="nds"
+      kicker="Nintendo DS · .nds"
+      facts={[
+        { label: "File type", value: ".nds", note: "a plain cartridge dump" },
+        { label: "Usual format", value: "xdelta", note: "IPS stops at 16 MB" },
+        { label: "ROM size", value: "tens to hundreds of MB", note: "many times a GBA game" },
+        { label: "Memory needed", value: "over 2× the ROM", note: "ROM, patch and result held at once" },
+      ]}
+      diagram={{
+        title: "What the browser holds while patching",
+        caption: "The original ROM, the patch and the patched copy all exist in memory at the same time, so free memory has to be more than twice the ROM size. If it runs short you get a clear out-of-memory message, not a frozen page.",
+        rows: [
+          { label: "In memory", segments: [{ label: "Original ROM", grow: 4, tone: "accent" }, { label: "Patch", tone: "muted" }, { label: "Patched copy", grow: 4, tone: "accent" }] },
+          { label: "Progress you will see", segments: [{ label: "Reading ROM" }, { label: "Reading patch" }, { label: "Validating" }, { label: "Patching" }, { label: "Verifying" }, { label: "Ready", tone: "ok" }] },
+        ],
+      }}
       patcher={{
         heading: "Patch an NDS ROM",
         romLabel: "Original NDS ROM",
@@ -158,8 +173,6 @@ export default function NdsRomPatcherPage() {
         { href: "/xdelta-patcher", title: "xdelta Patcher", description: "How xdelta works and which variants are supported." },
         { href: "/troubleshooting", title: "Troubleshooting", description: "Fixes for checksum mismatches and failed patches." },
         { href: "/gba-rom-patcher", title: "GBA ROM Patcher", description: "For Game Boy Advance hacks instead." },
-        { href: "/rom-checksum-checker", title: "ROM Checksum Checker", description: "Hash a large ROM and compare it with the hack's notes." },
-        { href: "/patch-compatibility-checker", title: "Patch Compatibility Checker", description: "See what can and cannot be verified for your patch." },
       ]}
       footer={
         <>

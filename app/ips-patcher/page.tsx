@@ -27,6 +27,22 @@ export default function IpsPatcherPage() {
         </p>
       }
       chips={["IPS"]}
+      kicker="Patch format · .ips"
+      facts={[
+        { label: "Checks your ROM", value: "never", note: "no field records the source" },
+        { label: "Reach", value: "16 MB", note: "3-byte offsets" },
+        { label: "File size", value: "tiny", note: "only the changed bytes" },
+        { label: "Best check", value: "your ROM's CRC32", note: "compare it with the readme" },
+      ]}
+      diagram={{
+        title: "Inside an IPS file",
+        caption: "An IPS file is a header, a list of change records and an end marker. Nothing in it describes the ROM it was made for, which is why it is tiny and why no tool can warn you about the wrong file.",
+        rows: [
+          { label: "Structure", segments: [{ label: "PATCH", sub: "5-byte header" }, { label: "Offset", sub: "3 bytes", tone: "accent" }, { label: "Size", sub: "2 bytes", tone: "accent" }, { label: "Bytes to write", grow: 2, tone: "accent" }, { label: "More records", grow: 2 }, { label: "EOF", sub: "end marker" }] },
+          { label: "Not stored anywhere in the file", segments: [{ label: "Source ROM size", tone: "bad" }, { label: "Source checksum", tone: "bad" }, { label: "Result checksum", tone: "bad" }] },
+        ],
+      }}
+      layout="format"
       patcher={{
         heading: "Apply an IPS patch",
         defaultFormat: "IPS",
@@ -161,8 +177,6 @@ export default function IpsPatcherPage() {
         { href: "/patch-formats", title: "Patch Formats Compared", description: "IPS, UPS, BPS and xdelta side by side." },
         { href: "/bps-patcher", title: "BPS Patcher", description: "The checksum-verified successor to IPS." },
         { href: "/troubleshooting", title: "Troubleshooting", description: "Fixes for the most common patching errors." },
-        { href: "/rom-checksum-checker", title: "ROM Checksum Checker", description: "The only check available before an IPS patch." },
-        { href: "/patch-compatibility-checker", title: "Patch Compatibility Checker", description: "See what can be verified for your patch." },
       ]}
       footer={
         <>

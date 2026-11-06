@@ -23,7 +23,7 @@ export type CardArtName =
   | "bps"
   | "xdelta";
 
-export type CardArtAccent = "green" | "blue" | "purple" | "amber";
+export type CardArtAccent = "green" | "blue" | "purple" | "amber" | "rose";
 
 const GREEN = "#39e07f";
 const BLUE = "#4cc9f0";
@@ -462,7 +462,10 @@ const ACCENTS: Record<CardArtAccent, string> = {
   blue: "from-accent-blue/20 via-accent-purple/10 to-accent-green/10",
   purple: "from-accent-purple/25 via-accent-blue/10 to-accent-green/10",
   amber: "from-amber-400/20 via-rose-400/10 to-accent-purple/10",
+  rose: "from-rose-400/20 via-accent-purple/10 to-accent-blue/10",
 };
+
+export { ACCENTS as CARD_ART_ACCENTS };
 
 /**
  * Decorative illustration band for the top of a card. Hidden from assistive tech; carries no

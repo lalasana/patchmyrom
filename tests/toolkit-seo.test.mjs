@@ -174,14 +174,16 @@ describe("sitemap, llms.txt, links", () => {
   });
 
   test("relevant existing pages link to the tools in context", () => {
+    // Either a card entry (href: "...") or an in-text link (href="...") counts.
+    const links = (source, href) => source.includes(`href: "${href}"`) || source.includes(`href="${href}"`);
     for (const rel of ["app/page.tsx", "app/troubleshooting/page.tsx", "app/snes-rom-patcher/page.tsx", "app/how-to-patch-pokemon-rom-hacks/page.tsx"]) {
       const source = read(rel);
-      assert.ok(source.includes('href: "/patch-compatibility-checker"'), `${rel} should link to the compatibility checker`);
-      assert.ok(source.includes('href: "/rom-checksum-checker"'), `${rel} should link to the checksum checker`);
+      assert.ok(links(source, "/patch-compatibility-checker"), `${rel} should link to the compatibility checker`);
+      assert.ok(links(source, "/rom-checksum-checker"), `${rel} should link to the checksum checker`);
     }
     // IPS / xdelta carry no checksum, which is exactly what the compatibility checker explains
     for (const rel of ["app/ips-patcher/page.tsx", "app/xdelta-patcher/page.tsx", "app/patch-formats/page.tsx"]) {
-      assert.ok(read(rel).includes('href: "/patch-compatibility-checker"'), rel);
+      assert.ok(links(read(rel), "/patch-compatibility-checker"), rel);
     }
   });
 

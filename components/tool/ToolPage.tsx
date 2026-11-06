@@ -9,6 +9,10 @@ import PrivacyNote from "@/components/ui/PrivacyNote";
 import GbaEmulatorCta from "@/components/ui/GbaEmulatorCta";
 import JsonLd from "@/components/seo/JsonLd";
 import RomPatcherTool from "@/components/tool/RomPatcherTool";
+import QuickFacts, { type Fact } from "@/components/tool/QuickFacts";
+import FormatDiagram, { type DiagramData } from "@/components/tool/FormatDiagram";
+import { PAGE_THEME } from "@/components/tool/page-theme";
+import type { PlatformKey } from "@/components/ui/PlatformArt";
 import type { PatchFormat } from "@/components/tool/FormatSelector";
 import type { CardArtAccent, CardArtName } from "@/components/ui/CardArt";
 import { FormatChip, type FormatKey } from "@/components/ui/FormatBadge";
@@ -19,8 +23,17 @@ export type ToolPageProps = {
   /** Route, e.g. "/gba-rom-patcher". Only used for the breadcrumb. */
   path: string;
   breadcrumbLabel: string;
-  art: CardArtName;
+  art?: CardArtName;
+  /** Console silhouette for the hero (consoles); format pages use `art`. */
+  platform?: PlatformKey;
   accent: CardArtAccent;
+  /** Small label above the H1, e.g. "Game Boy Advance · .gba". */
+  kicker?: string;
+  /** Four at-a-glance facts shown under the patcher. */
+  facts?: Fact[];
+  /** Explanatory diagram: beside the text on console pages, above it on format pages. */
+  diagram?: DiagramData;
+  layout?: "console" | "format";
   /** The page's <h1>. */
   title: string;
   intro: ReactNode;
@@ -54,6 +67,13 @@ export type ToolPageProps = {
  * then the guidance that is specific to the page. Content stays in each page file.
  */
 export default function ToolPage(props: ToolPageProps) {
+  const theme = PAGE_THEME[props.accent];
+  const diagram = props.diagram ? <FormatDiagram accent={props.accent} {...props.diagram} /> : null;
+  const featureCard = (
+    <div className={`card border-l-4 p-5 ${theme.borderL}`}>
+      <div className="max-w-3xl space-y-3 text-muted">{props.feature.body}</div>
+    </div>
+  );
   const howToJsonLd = {
     "@context": "https://schema.org",
     "@type": "HowTo",
@@ -67,7 +87,7 @@ export default function ToolPage(props: ToolPageProps) {
       <JsonLd data={howToJsonLd} />
       <Breadcrumbs items={[{ href: props.path, label: props.breadcrumbLabel }]} />
 
-      <PageHero art={props.art} accent={props.accent}>
+      <PageHero art={props.art} platform={props.platform} accent={props.accent} kicker={props.kicker}>
         <h1 className="text-3xl font-bold text-foreground sm:text-4xl">{props.title}</h1>
         <div className="max-w-2xl text-muted sm:text-lg">{props.intro}</div>
         <div className="flex flex-wrap gap-2">
@@ -82,6 +102,8 @@ export default function ToolPage(props: ToolPageProps) {
         <PrivacyNote />
       </section>
 
+      {props.facts && <QuickFacts facts={props.facts} accent={props.accent} title={`${props.title} at a glance`} />}
+
       <section className="pixel-card flex flex-col gap-3 p-5 sm:p-6">
         <div className="flex items-center gap-3">
           <span className="flex h-9 w-9 flex-none items-center justify-center rounded-xl bg-accent-blue/15 text-accent-blue">
@@ -94,9 +116,19 @@ export default function ToolPage(props: ToolPageProps) {
 
       <section className="flex flex-col gap-4">
         <SectionHeading icon={props.feature.icon} title={props.feature.title} accent={props.feature.accent} />
-        <div className="card border-l-4 border-l-accent-green p-5">
-          <div className="max-w-3xl space-y-3 text-muted">{props.feature.body}</div>
-        </div>
+        {diagram && props.layout === "format" ? (
+          <>
+            {diagram}
+            {featureCard}
+          </>
+        ) : diagram ? (
+          <div className="grid items-start gap-5 lg:grid-cols-2">
+            {featureCard}
+            {diagram}
+          </div>
+        ) : (
+          featureCard
+        )}
       </section>
 
       {props.extra}

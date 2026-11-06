@@ -16,7 +16,6 @@ export default function GbaRomPatcherPage() {
     <ToolPage
       path="/gba-rom-patcher"
       breadcrumbLabel="GBA ROM Patcher"
-      art="cartridge"
       accent="purple"
       title="GBA ROM Patcher"
       intro={
@@ -26,6 +25,22 @@ export default function GbaRomPatcherPage() {
         </p>
       }
       chips={["IPS", "UPS", "BPS"]}
+      platform="gba"
+      kicker="Game Boy Advance · .gba"
+      facts={[
+        { label: "File type", value: ".gba", note: "no copier header to strip" },
+        { label: "Cartridge ROM", value: "up to 32 MB", note: "the GBA's address space" },
+        { label: "IPS can reach", value: "16 MB", note: "bigger hacks use UPS or BPS" },
+        { label: "Checks your ROM", value: "UPS · BPS", note: "IPS has no checksum to compare" },
+      ]}
+      diagram={{
+        title: "Why the format matters on GBA",
+        caption: "An IPS patch cannot write past 16 MB, so hacks that grow the ROM into the upper half of the cartridge ship as UPS or BPS. Only those two can also check that you picked the right ROM.",
+        rows: [
+          { label: "GBA cartridge ROM space (32 MB)", segments: [{ label: "First 16 MB", sub: "IPS, UPS and BPS can write here", tone: "accent" }, { label: "Upper 16 MB", sub: "UPS and BPS only", tone: "ok" }] },
+          { label: "Checks your ROM before patching", segments: [{ label: "IPS", sub: "No check", tone: "bad" }, { label: "UPS", sub: "CRC32", tone: "ok" }, { label: "BPS", sub: "CRC32", tone: "ok" }] },
+        ],
+      }}
       patcher={{
         heading: "Patch a GBA ROM",
         romLabel: "Original GBA ROM",
@@ -164,8 +179,6 @@ export default function GbaRomPatcherPage() {
         { href: "/ips-patcher", title: "IPS Patcher", description: "The simplest format, and its 16 MB limit." },
         { href: "/bps-patcher", title: "BPS Patcher", description: "Checksum-verified patching, common for newer GBA hacks." },
         { href: "/pokemon-rom-patcher", title: "Pokemon ROM Patcher", description: "Base ROM reference for 50 popular Pokemon ROM hacks." },
-        { href: "/rom-checksum-checker", title: "ROM Checksum Checker", description: "Compare your ROM's CRC32 with the hack's page." },
-        { href: "/patch-compatibility-checker", title: "Patch Compatibility Checker", description: "Test a ROM against a patch before applying it." },
       ]}
       emulatorCta={{ placement: "gba_page" }}
       footer={

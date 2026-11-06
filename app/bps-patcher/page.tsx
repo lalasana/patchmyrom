@@ -26,6 +26,23 @@ export default function BpsPatcherPage() {
         </p>
       }
       chips={["BPS"]}
+      kicker="Patch format · .bps"
+      facts={[
+        { label: "Verifies", value: "source and target", note: "CRC32 of both" },
+        { label: "Also stores", value: "patch CRC32", note: "detects a damaged file" },
+        { label: "Mismatch message", value: "names both CRC32s", note: "what the patch needs, what you gave it" },
+        { label: "Damaged files", value: "refused fast", note: "oversized or impossible values" },
+      ]}
+      diagram={{
+        title: "Inside a BPS file and what happens to your ROM",
+        caption: "A BPS file stores the size and CRC32 of the source and of the finished result, plus a checksum of itself. Damaged or hostile files are refused within a fraction of a second, and the next file you drop in works normally.",
+        rows: [
+          { label: "Structure", segments: [{ label: "BPS1", sub: "signature" }, { label: "Source size", tone: "accent" }, { label: "Target size", tone: "accent" }, { label: "Metadata" }, { label: "Actions", grow: 3 }, { label: "Source CRC32", tone: "ok" }, { label: "Target CRC32", tone: "ok" }, { label: "Patch CRC32", tone: "muted" }] },
+          { label: "Your ROM against the stored checksums", segments: [{ label: "Matches source", sub: "patch applies", tone: "ok" }, { label: "Matches target", sub: "already patched, stop", tone: "muted" }, { label: "Matches neither", sub: "mismatch, stop", tone: "bad" }] },
+          { label: "A malformed file", segments: [{ label: "Size of 2 GiB or more", sub: "refused", tone: "bad" }, { label: "Impossible action length", sub: "refused", tone: "bad" }, { label: "Offset out of range", sub: "refused", tone: "bad" }] },
+        ],
+      }}
+      layout="format"
       patcher={{
         heading: "Apply a BPS patch",
         defaultFormat: "BPS",
@@ -159,8 +176,6 @@ export default function BpsPatcherPage() {
         { href: "/patch-formats", title: "Patch Formats Compared", description: "IPS, UPS, BPS and xdelta side by side." },
         { href: "/ips-patcher", title: "IPS Patcher", description: "The older format BPS was designed to improve on." },
         { href: "/troubleshooting", title: "Troubleshooting", description: "Fixes for checksum mismatches and wrong ROMs." },
-        { href: "/rom-checksum-checker", title: "ROM Checksum Checker", description: "Find which release your ROM is." },
-        { href: "/patch-compatibility-checker", title: "Patch Compatibility Checker", description: "Test a ROM against a BPS patch first." },
       ]}
       footer={
         <>
