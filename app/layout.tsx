@@ -76,6 +76,14 @@ export default function RootLayout({
       lang="en"
       className={`${geistSans.variable} ${geistMono.variable} h-full antialiased`}
     >
+      <head>
+        {/* Google AdSense site verification. A plain tag (not next/script) so it is in the static HTML Google fetches. */}
+        <script
+          async
+          src="https://pagead2.googlesyndication.com/pagead/js/adsbygoogle.js?client=ca-pub-4892097815597579"
+          crossOrigin="anonymous"
+        />
+      </head>
       <body className="min-h-full flex flex-col bg-background text-foreground">
         <div aria-hidden className="bg-aurora pointer-events-none fixed inset-0 -z-20" />
         <div aria-hidden className="pointer-events-none fixed inset-0 -z-10 bg-grid-pattern" />
