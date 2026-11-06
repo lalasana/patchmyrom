@@ -83,6 +83,15 @@ export default function RootLayout({
           src="https://pagead2.googlesyndication.com/pagead/js/adsbygoogle.js?client=ca-pub-4892097815597579"
           crossOrigin="anonymous"
         />
+        {/* Google Tag Manager / Analytics (GTM-M2XR3LLF). Plain tags so they are in the static HTML.
+            The gtm.start push is the standard GTM start event; without it the container's tags never fire. */}
+        <script
+          dangerouslySetInnerHTML={{
+            __html:
+              "window.dataLayer = window.dataLayer || [];function gtag(){dataLayer.push(arguments);}gtag('js', new Date());window.dataLayer.push({'gtm.start': new Date().getTime(), event: 'gtm.js'});",
+          }}
+        />
+        <script async src="https://www.googletagmanager.com/gtm.js?id=GTM-M2XR3LLF" />
       </head>
       <body className="min-h-full flex flex-col bg-background text-foreground">
         <div aria-hidden className="bg-aurora pointer-events-none fixed inset-0 -z-20" />
