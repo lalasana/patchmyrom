@@ -3,7 +3,7 @@ import { Geist, Geist_Mono } from "next/font/google";
 import "./globals.css";
 import Header from "@/components/layout/Header";
 import Footer from "@/components/layout/Footer";
-import CookieConsentProvider from "@/components/layout/CookieConsentProvider";
+import CookieNotice from "@/components/layout/CookieNotice";
 import JsonLd from "@/components/seo/JsonLd";
 import { siteConfig } from "@/lib/site";
 
@@ -98,11 +98,10 @@ export default function RootLayout({
         <div aria-hidden className="pointer-events-none fixed inset-0 -z-10 bg-grid-pattern" />
         <div aria-hidden className="bg-noise pointer-events-none fixed inset-0 -z-10" />
         <JsonLd data={organizationJsonLd} />
-        <CookieConsentProvider>
-          <Header />
-          <main className="flex-1">{children}</main>
-          <Footer />
-        </CookieConsentProvider>
+        <Header />
+        <main className="flex-1">{children}</main>
+        <Footer />
+        <CookieNotice />
       </body>
     </html>
   );

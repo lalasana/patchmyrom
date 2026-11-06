@@ -65,8 +65,9 @@ export default function AboutPage() {
         <p className="text-muted">
           PatchMyROM is a finished, working site that is updated as the tools improve. The patch engine
           runs inside a Web Worker so the page never freezes on large ROM files, and patched files are
-          checked against the patch&rsquo;s own checksums where the format provides them. No ad network is
-          loaded, and the cookie banner lets you decline optional cookies. See the{" "}
+          checked against the patch&rsquo;s own checksums where the format provides them. The site uses Google
+          Tag Manager, Google Analytics and Google AdSense, which run for every visitor; the{" "}
+          <InlineLink href="/privacy#cookies">Privacy Policy</InlineLink> explains what that means for cookies. See the{" "}
           <InlineLink href="/changelog">changelog</InlineLink> for what has changed and when.
         </p>
       </section>

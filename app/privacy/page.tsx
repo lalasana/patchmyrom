@@ -17,7 +17,7 @@ export default function PrivacyPage() {
 
       <PageHero art="shield" accent="green">
 <h1 className="text-3xl font-bold text-foreground sm:text-4xl">Privacy Policy</h1>
-      <p className="text-sm text-muted">Last updated: July 2, 2026</p>
+      <p className="text-sm text-muted">Last updated: November 6, 2026</p>
       </PageHero>
 
       <section className="pixel-card flex flex-col gap-3 p-6 text-muted">
@@ -28,22 +28,60 @@ export default function PrivacyPage() {
         </p>
       </section>
 
-      <section className="pixel-card flex flex-col gap-3 p-6 text-muted">
+      <section id="cookies" className="pixel-card flex scroll-mt-24 flex-col gap-3 p-6 text-muted">
         <h2 className="border-l-4 border-accent-green pl-3 text-xl font-bold text-foreground">Cookies</h2>
         <p>
-          We use a small &ldquo;necessary&rdquo; cookie/local storage entry to remember your
-          cookie preferences. Analytics and advertising cookies are only set if you explicitly
-          opt in via the cookie consent banner or the &ldquo;Cookie Settings&rdquo; link in the
-          footer. As of this version of the site, no analytics or advertising scripts are loaded
-          regardless of your choice.
+          PatchMyROM and the Google services described below use cookies and similar technologies.
+          The cookie notice on the site is an information notice: clicking &ldquo;Accept&rdquo; hides
+          it and stores a small entry in your browser&rsquo;s local storage so it does not appear again.
+          It does not switch any service on or off, and the Google services below run whether or not
+          you click it.
+        </p>
+        <p>
+          The site also keeps a short list of your recent patches (file names and format only) in
+          local storage so you can see them again. It never leaves your device. You can clear it, and
+          the notice entry, at any time by clearing this site&rsquo;s data in your browser.
         </p>
       </section>
 
       <section className="pixel-card flex flex-col gap-3 p-6 text-muted">
         <h2 className="border-l-4 border-accent-green pl-3 text-xl font-bold text-foreground">Analytics &amp; Advertising</h2>
         <p>
-          When analytics or advertising are enabled in a future version of the site, this policy
-          will be updated to disclose the specific providers used and what data they collect.
+          Every page loads Google Tag Manager and Google Analytics to measure how the site is used,
+          and Google AdSense, through which Google may show advertising. These services are operated
+          by Google and may set cookies and collect information such as your IP address, browser and
+          device details, and the pages you visit, as described in{" "}
+          <a
+            href="https://policies.google.com/technologies/cookies"
+            target="_blank"
+            rel="noopener noreferrer"
+            className="text-accent-blue hover:underline"
+          >
+            Google&rsquo;s cookie information
+          </a>
+          . You can control them with your browser&rsquo;s cookie settings, with{" "}
+          <a
+            href="https://adssettings.google.com/"
+            target="_blank"
+            rel="noopener noreferrer"
+            className="text-accent-blue hover:underline"
+          >
+            Google&rsquo;s ad settings
+          </a>
+          , or by installing Google&rsquo;s{" "}
+          <a
+            href="https://tools.google.com/dlpage/gaoptout"
+            target="_blank"
+            rel="noopener noreferrer"
+            className="text-accent-blue hover:underline"
+          >
+            Analytics opt-out add-on
+          </a>
+          .
+        </p>
+        <p>
+          Your ROM and patch files are never part of this: they are processed only in your browser and
+          are not sent to Google or anyone else.
         </p>
       </section>
 

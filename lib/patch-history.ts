@@ -37,7 +37,7 @@ function parseHistory(raw: string | null): PatchHistoryEntry[] {
 
 // useSyncExternalStore requires getSnapshot to return a stable reference
 // when the underlying value hasn't changed, so the raw string is cached
-// alongside the parsed result (same pattern as lib/cookie-consent.ts).
+// alongside the parsed result.
 let cachedRaw: string | null | undefined;
 let cachedHistory: PatchHistoryEntry[] = [];
 

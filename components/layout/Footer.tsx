@@ -1,7 +1,6 @@
 import Link from "next/link";
 import { footerLinks, siteConfig } from "@/lib/site";
 import { FooterLogo } from "@/components/ui/Logo";
-import CookieSettingsLink from "@/components/layout/CookieSettingsLink";
 
 function FooterColumn({
   title,
@@ -47,7 +46,9 @@ export default function Footer() {
           <span>
             &copy; {new Date().getFullYear()} {siteConfig.name}. All rights reserved.
           </span>
-          <CookieSettingsLink />
+          <Link href="/privacy#cookies" className="text-sm text-muted transition-colors hover:text-foreground">
+            Cookie Policy
+          </Link>
         </div>
       </div>
     </footer>
