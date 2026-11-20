@@ -28,3 +28,11 @@ test("built sitemap: every <loc> ends with a slash and matches that page's own c
     assert.equal(canonical, loc, `${loc} is its own canonical`);
   }
 });
+
+test("breadcrumb JSON-LD, llms.txt and in-page links use canonical trailing-slash URLs", () => {
+  const crumbs = readFileSync(new URL("components/ui/Breadcrumbs.tsx", root), "utf8");
+  assert.ok(crumbs.includes('item.href === "/" ? "/" : item.href.replace('), "breadcrumb item URLs are normalised to a trailing slash");
+  const llms = readFileSync(new URL("app/llms.txt/route.ts", root), "utf8");
+  assert.ok(llms.includes('entry.path.endsWith("/") ? entry.path'), "llms.txt links are normalised to a trailing slash");
+  assert.doesNotMatch(readFileSync(new URL("app/contact/page.tsx", root), "utf8"), /href="\/dmca"/);
+});

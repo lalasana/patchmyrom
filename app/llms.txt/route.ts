@@ -75,7 +75,9 @@ function buildLlmsTxt(): string {
   for (const section of sections) {
     lines.push(`## ${section.heading}`, "");
     for (const entry of section.entries) {
-      lines.push(`- [${siteConfig.url}${entry.path}](${siteConfig.url}${entry.path}): ${entry.description}`);
+      // Canonical (trailing-slash) URLs: the site is exported with trailing slashes.
+      const url = `${siteConfig.url}${entry.path.endsWith("/") ? entry.path : `${entry.path}/`}`;
+      lines.push(`- [${url}](${url}): ${entry.description}`);
     }
     lines.push("");
   }

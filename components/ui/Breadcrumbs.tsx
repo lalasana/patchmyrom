@@ -17,7 +17,8 @@ export default function Breadcrumbs({ items }: { items: Crumb[] }) {
       "@type": "ListItem",
       position: index + 1,
       name: item.label,
-      item: `${siteConfig.url}${item.href}`,
+      // Canonical (trailing-slash) URL, so the structured data does not point at a redirect.
+      item: `${siteConfig.url}${item.href === "/" ? "/" : item.href.replace(/\/?$/, "/")}`,
     })),
   };
 

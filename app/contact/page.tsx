@@ -32,7 +32,7 @@ export default function ContactPage() {
         </p>
         <p>
           For copyright concerns, please use our{" "}
-          <a href="/dmca" className="text-accent-blue hover:underline">
+          <a href="/dmca/" className="text-accent-blue hover:underline">
             DMCA policy
           </a>{" "}
           instead.
